@@ -1,102 +1,230 @@
-# Preston Genome Studio
+<div align="center">
 
-A privacy-first visual wrapper for Preston's whole-genome OpenCRAVAT workflow. It runs locally with the real analysis status or on Cloudflare Pages as a safe visual preview. Raw genome files and personal results always stay outside the social-media project.
+# 🧬 Zen Genome Studio
 
-![Genome Studio concept](docs/design/genome-studio-concept.png)
+### Your genome stays private. Your discoveries get a stage.
 
-## Privacy boundary
+A privacy-first visual workspace for exploring whole-genome VCFs with
+[OpenCRAVAT](https://opencravat.org/) and creating polished, record-ready walkthroughs.
 
-- Raw genome files stay in the private Desktop DNA folder configured in `.env.local`.
-- The private path exists only in `.env.local`, which Git ignores.
-- The browser receives only a generic source name, availability, and file size.
-- Genome files, result databases, jobs, recordings, logs, and local settings are blocked by `.gitignore`.
-- The GitHub workflow fails if a genomic or analysis-data file is ever added to the repository.
-- The Cloudflare build has no genome-upload endpoint and reports only that no private source is present.
+[![Privacy-safe build](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml) [![MIT License](https://img.shields.io/badge/license-MIT-20c997.svg)](LICENSE) [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/) [![OpenCRAVAT](https://img.shields.io/badge/analysis-OpenCRAVAT-f5c451)](https://opencravat.org/) [![Cloudflare Pages](https://img.shields.io/badge/demo-Cloudflare%20Pages-f38020?logo=cloudflare&logoColor=white)](CLOUDFLARE.md)
 
-## First-time setup
+**[Quick start](#-quick-start)** · **[How it works](#-how-it-works)** · **[Privacy](#-the-privacy-promise)** · **[Creator mode](#-built-for-the-camera)**
 
-1. Open **Ubuntu** from the Start menu once.
-2. Let it finish installing, then create the requested Linux username and password.
-3. Open PowerShell in this project folder.
-4. Run:
+</div>
+
+![Zen Genome Studio interface](docs/design/genome-studio-concept.png)
+
+```text
+                 A · T                 C · G
+                  ╲ ╱                   ╲ ╱
+                   ╳     Z E N           ╳
+                  ╱ ╲   G E N O M E     ╱ ╲
+                 G · C   S T U D I O   T · A
+                    privacy → insight
+```
+
+> [!IMPORTANT]
+> Zen Genome Studio is for research and education. It does not diagnose disease or replace advice from a qualified clinician or genetic counselor.
+
+## ✨ What is this?
+
+Zen Genome Studio adds a cinematic, screen-recording-friendly layer to a serious local genomics workflow. OpenCRAVAT performs the real annotation work; the studio gives creators and curious genome owners a clean way to navigate, explain, and record the journey.
+
+| Experience | What it does | Where your genome goes |
+| --- | --- | --- |
+| 🖥️ **Local studio** | Connects to a private VCF and launches OpenCRAVAT | Nowhere. It stays on your computer. |
+| ☁️ **Cloud preview** | Shows the visual interface with reference/demo content | No upload exists. No genome is received. |
+| 🎬 **Record-safe mode** | Hides sensitive details while you capture a walkthrough | Recording remains under your control. |
+
+The interface never invents personal findings. Clinical and trait views remain empty until genuine annotated results exist.
+
+## 🗺️ How it works
+
+```mermaid
+flowchart LR
+    VCF[(Private WGS VCF)]:::private
+    WSL[Ubuntu / WSL2]:::local
+    OC[OpenCRAVAT]:::engine
+    STUDIO[Zen Genome Studio]:::studio
+    VIDEO[Screen recording]:::output
+    CF[Cloudflare preview]:::cloud
+
+    VCF -->|read locally| WSL
+    WSL --> OC
+    OC -->|private results| STUDIO
+    STUDIO -->|record-safe view| VIDEO
+    CF -. demo UI only .-> STUDIO
+    VCF -. never uploaded .-> CF
+
+    classDef private fill:#2a1519,stroke:#ff6b6b,color:#fff
+    classDef local fill:#13262b,stroke:#45d6c4,color:#fff
+    classDef engine fill:#29240f,stroke:#f5c451,color:#fff
+    classDef studio fill:#15273a,stroke:#57a8ff,color:#fff
+    classDef output fill:#251c34,stroke:#c58cff,color:#fff
+    classDef cloud fill:#242424,stroke:#f38020,color:#fff
+```
+
+### Two deliberately separate worlds
+
+```text
+┌──────────────────────────── PUBLIC ────────────────────────────┐
+│  GitHub source  →  Cloudflare Pages  →  reference-only demo  │
+│  No uploads        No findings          Safe to share         │
+└────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────── PRIVATE ───────────────────────────┐
+│  Original VCF   →  OpenCRAVAT / WSL2  →  local result viewer │
+│  Outside repo      Real annotation        Never auto-shared    │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## 🚀 Quick start
+
+### 1. Prepare Windows
+
+Install **Ubuntu** from the Microsoft Store, open it once, and create your Linux username and password. Keep raw genome files in a private folder outside this repository.
+
+### 2. Install the workspace
+
+Open PowerShell in the project folder:
 
 ```powershell
+npm install
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-opencravat.ps1
 ```
 
-The setup uses an isolated Python environment in Ubuntu. It installs OpenCRAVAT, the GRCh38 base reference data, ClinVar, ClinVar ACMG, dbSNP, gnomAD 4, GWAS Catalog, PharmGKB, REVEL, SIFT, PolyPhen-2, Excel/TSV reporting, and matching viewer widgets. The base install alone downloads about 2 GB; the full module set needs additional disk space and time.
+The setup creates an isolated Python environment inside Ubuntu and installs OpenCRAVAT, its GRCh38 base data, and a practical starter collection of clinical, population, pharmacogenomic, trait, prediction, and reporting modules.
 
-## Start and stop
+> [!NOTE]
+> Base reference data alone is about 2 GB. The complete module set needs additional disk space and can take a while to download.
 
-Start both the recording wrapper and OpenCRAVAT:
+### 3. Point to private data
+
+Create `.env.local` from `.env.example` and set the private source directory and VCF filename. `.env.local` is ignored by Git and must never be committed.
+
+```dotenv
+GENOME_DATA_DIR=C:\path\to\private-genome-data
+GENOME_VCF_NAME=sample.vcf.gz
+OPENCRAVAT_URL=http://127.0.0.1:8080
+```
+
+### 4. Launch
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start-all.ps1
 ```
 
-Open these local pages:
+| Local page | Address |
+| --- | --- |
+| 🎨 Zen Genome Studio | `http://127.0.0.1:4173/` |
+| 🔬 OpenCRAVAT | `http://127.0.0.1:8080/` |
 
-- Recording wrapper: `http://127.0.0.1:4173/`
-- OpenCRAVAT: `http://127.0.0.1:8080/`
-
-Stop both local services:
+Stop both services with:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-all.ps1
 ```
 
-## VCF workflow
+## 🔬 Annotation toolkit
 
-In OpenCRAVAT, choose the private source file directly from the Desktop folder. Select the correct genome assembly from the VCF header before starting the job. A full whole-genome annotation can run for hours and create large result files, so keep job output in OpenCRAVAT's private Ubuntu area rather than this repository.
+The starter setup installs modules selected for a broad first exploration:
 
-The wrapper's **Clinical** and **Traits** views intentionally stay empty until real annotated results are available. The chromosome screen is labeled **Reference preview** and **Visual demo** so it cannot be mistaken for a medical finding.
+| Lens | Included modules |
+| --- | --- |
+| Clinical evidence | ClinVar, ClinVar ACMG |
+| Population context | dbSNP, gnomAD 4 |
+| Traits and studies | GWAS Catalog |
+| Pharmacogenomics | PharmGKB |
+| Prediction | REVEL, SIFT, PolyPhen-2 |
+| Exports | Excel and TSV reporters |
 
-## Screen-recording shot list
+OpenCRAVAT modules and source databases can change over time. Always inspect the evidence, genome assembly, database version, and original source before interpreting a variant.
 
-1. Open on **Whole genome overview** with **Record-safe mode** on.
-2. Hold for two seconds on the chromosome landscape and select chromosomes 11, 17, and X.
-3. Show the VCF status as **Found** without opening File Explorer.
-4. Switch to **Clinical**, then **Traits**, and explain that personal results are never simulated.
-5. Open OpenCRAVAT in a new tab and show the Jobs/Store interface without revealing local paths.
-6. Return to the wrapper, start the recording timer, and end on **Nothing leaves this computer**.
+## 🎬 Built for the camera
 
-For TikTok, crop the browser to the central landscape plus the right recording rail. Keep the OpenCRAVAT disclaimer visible when discussing variants: research and education only, not a diagnosis.
+The studio is designed for vertical-video walkthroughs without turning private biology into accidental background footage.
 
-## GitHub
+### Suggested shot list
 
-The public repository is [`prestonzen/zen-genome-studio`](https://github.com/prestonzen/zen-genome-studio). It contains application code and a reference preview only. It never contains Preston's genome or generated analysis results.
+1. Open on **Whole genome overview** with **Record-safe mode** enabled.
+2. Hold on the chromosome landscape, then select chromosomes `11`, `17`, and `X`.
+3. Show the source status as **Found** without opening File Explorer.
+4. Visit **Clinical** and **Traits** and explain why the app does not simulate findings.
+5. Open the OpenCRAVAT Jobs/Store interface without revealing local paths.
+6. Return to the studio, start the recording timer, and end on **Nothing leaves this computer**.
 
-Before every push, review `git status` and never force-add ignored files. Contributions are welcome under the [MIT License](LICENSE), but issues and pull requests must not include genomic data, personal findings, or private file paths. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+For a TikTok crop, keep the chromosome landscape and recording rail in frame. Review every frame before posting, especially tabs, notifications, browser history, filenames, and result details.
 
-## Cloudflare Pages
+## 🛡️ The privacy promise
 
-Cloudflare hosts the recording-friendly interface and one tiny status Function. It does **not** run OpenCRAVAT and does not receive the VCF.
+- Raw VCF, BCF, BAM, CRAM, FASTQ, and Genozip files are blocked by `.gitignore`.
+- OpenCRAVAT SQLite databases, jobs, exports, logs, recordings, and local settings are blocked too.
+- The browser receives only a generic source label, presence state, and file size.
+- Cloudflare mode has no upload route and always reports that no private genome is present.
+- GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
+- Public bug reports require a privacy confirmation before submission.
 
-Preview the Cloudflare build locally:
+Read the full [security and privacy policy](SECURITY.md) before recording or contributing.
+
+## ☁️ Cloudflare preview
+
+Cloudflare Pages can host the visual interface, but it does **not** run OpenCRAVAT. The annotation engine needs large reference databases, persistent storage, and long-running compute that do not fit a Worker.
 
 ```powershell
 npm run preview:cloudflare
-```
-
-Deploy after signing in to Wrangler:
-
-```powershell
 npx wrangler login
 npm run deploy:cloudflare
 ```
 
-The deployment creates a `pages.dev` site. Pages sites are public unless access controls are added, so deploy only the code-only cloud preview. See [CLOUDFLARE.md](CLOUDFLARE.md) for the architecture, platform limits, and the later private-server migration path.
+See [CLOUDFLARE.md](CLOUDFLARE.md) for platform boundaries and the future private-server architecture.
 
-## Development
+## 🧱 Project map
+
+```text
+zen-genome-studio/
+├── 🧬 src/                 React recording interface
+├── ☁️ functions/           Privacy-safe Pages Function
+├── 🎬 docs/design/         Public visual assets
+├── 🛠️ scripts/             Setup, launch, and shutdown helpers
+├── 🔒 SECURITY.md          Genome-data boundary
+├── 🤝 CONTRIBUTING.md      Public contribution rules
+└── ⚡ wrangler.jsonc       Cloudflare Pages configuration
+```
+
+## 🧪 Development
 
 ```powershell
-npm install
+npm ci
 npm run dev
 ```
 
-Checks:
+Before opening a pull request:
 
 ```powershell
 npm run lint
 npm run build
 ```
+
+Contributions are welcome, but use fictional examples only. Never attach genomic data, personal findings, sample identifiers, screenshots containing findings, or private file paths. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## 🛣️ Roadmap
+
+- [x] Privacy-safe local/cloud mode detection
+- [x] Record-safe creator interface
+- [x] OpenCRAVAT setup and lifecycle scripts
+- [x] Cloudflare Pages preview architecture
+- [ ] Import normalized OpenCRAVAT result summaries
+- [ ] Add an authenticated private-server connector
+- [ ] Publish reusable vertical-video scene presets
+- [ ] Add provenance cards for evidence and database versions
+
+## 📜 License
+
+Released under the [MIT License](LICENSE). Built by [Preston Zen](https://github.com/prestonzen) for open, privacy-conscious genome discovery.
+
+<div align="center">
+
+**🧬 Keep the genome private. Make the learning public. ✨**
+
+</div>
