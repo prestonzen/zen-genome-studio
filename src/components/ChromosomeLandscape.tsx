@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowUpRight,
   Check,
   ChevronRight,
   Database,
+  Download,
   Dna,
   FileSearch,
   Gauge,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react'
 import { chromosomes } from '../data/chromosomes'
 import { genomeRegions, polygenicModels, type GenomeRegion } from '../data/genomeRegions'
+import { heightPgsModel } from '../data/pgsCatalog'
 import type { LandscapeTab, LocalStatus, TraitReport } from '../types'
 import { TermTip } from './TermTip'
 
@@ -102,22 +104,65 @@ function GenomeMap({ selected, onSelect, report }: Pick<ChromosomeLandscapeProps
   )
 }
 
+type PgsModelState = {
+  mode: 'local' | 'cloud'
+  installed: boolean
+  bytes?: number
+  installedAt?: string
+  model: typeof heightPgsModel
+  note?: string
+  error?: string
+}
+
 function PolygenicView() {
-  const [selected, setSelected] = useState(polygenicModels[0])
+  const [selectedId, setSelectedId] = useState(polygenicModels[0].id)
+  const [pgsState, setPgsState] = useState<PgsModelState | null>(null)
+  const [installing, setInstalling] = useState(false)
+  const selected = polygenicModels.find((model) => model.id === selectedId) ?? polygenicModels[0]
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/pgs-model', { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Model status failed')))
+      .then((result: PgsModelState) => setPgsState(result))
+      .catch((error) => {
+        if (error instanceof Error && error.name !== 'AbortError') setPgsState(null)
+      })
+    return () => controller.abort()
+  }, [])
+
+  async function installHeightModel() {
+    setInstalling(true)
+    try {
+      const response = await fetch('/api/pgs-model', { method: 'POST' })
+      const result = await response.json() as PgsModelState
+      setPgsState(result)
+    } catch {
+      setPgsState((current) => current ? { ...current, error: 'The model download could not be completed.' } : null)
+    } finally {
+      setInstalling(false)
+    }
+  }
+
   return (
     <div className="polygenic-view">
       <header><div><Gauge size={24} /><span><strong>Polygenic workbench</strong><small><TermTip compact term="Polygenic score" definition="A weighted total built from many DNA variants. It estimates a tendency relative to a comparison group, not a destiny or diagnosis." /></small></span></div><p>No personal score is displayed until its inputs and comparison population are validated.</p></header>
       <div className="polygenic-grid">
         <div className="polygenic-list">
           {polygenicModels.map((model) => (
-            <button key={model.id} className={selected.id === model.id ? 'active' : ''} onClick={() => setSelected(model)} type="button" aria-expanded={selected.id === model.id}>
-              <span><strong>{model.title}</strong><small>{model.scale}</small></span><i><b style={{ width: `${model.readiness}%` }} /></i><em>{model.status}</em><ChevronRight size={16} />
+            <button key={model.id} className={selected.id === model.id ? 'active' : ''} onClick={() => setSelectedId(model.id)} type="button" aria-expanded={selected.id === model.id}>
+              <span><strong>{model.title}</strong><small>{model.id === 'height-pgs' ? '62,419 variants' : model.scale}</small></span><i><b style={{ width: `${model.id === 'height-pgs' && pgsState?.installed ? 72 : model.readiness}%` }} /></i><em>{model.id === 'height-pgs' && pgsState?.installed ? 'Weights ready' : model.status}</em><ChevronRight size={16} />
             </button>
           ))}
         </div>
         <article className="polygenic-detail">
-          <span>SELECTED MODEL</span><h3>{selected.title}</h3><b>{selected.status}</b><p>{selected.summary}</p>
+          <span>SELECTED MODEL</span><h3>{selected.title}</h3><b>{selected.id === 'height-pgs' && pgsState?.installed ? 'Scoring file ready' : selected.status}</b><p>{selected.summary}</p>
           <div><Layers3 size={19} /><p><strong>What happens next</strong>{selected.next}</p></div>
+          {selected.id === 'height-pgs' && <section className={pgsState?.installed ? 'pgs-installer installed' : 'pgs-installer'}>
+            <header><div><Download size={17} /><span><strong>{pgsState?.installed ? `${heightPgsModel.id} is on this device` : `Add ${heightPgsModel.id}`}</strong><small>{heightPgsModel.variants.toLocaleString()} public weights · {heightPgsModel.build}</small></span></div><button type="button" onClick={installHeightModel} disabled={installing || pgsState?.installed || pgsState?.mode === 'cloud'}>{installing ? <LoaderCircle className="spin" size={14} /> : pgsState?.installed ? <Check size={14} /> : <Download size={14} />}{installing ? 'Adding model' : pgsState?.installed ? 'Model added' : 'Add locally'}</button></header>
+            <p>{pgsState?.error || pgsState?.note || 'Downloads the public scoring definition only. Your genome stays on this computer.'}</p>
+            <footer><span className={pgsState?.installed ? 'done' : ''}>1 Model weights</span><span>2 Local calculation</span><span>3 Population calibration</span></footer>
+          </section>}
           <ol><li><i>1</i>Match variants and effect alleles</li><li><i>2</i>Calculate the weighted dosage sum</li><li><i>3</i>Normalize against a relevant population</li><li><i>4</i>Report uncertainty and missing coverage</li></ol>
           <a href={selected.sourceUrl} target="_blank" rel="noreferrer">Open model source <ArrowUpRight size={15} /></a>
         </article>
@@ -134,7 +179,7 @@ function DataLayersView({ status, report }: Pick<ChromosomeLandscapeProps, 'stat
     { id: 'vcf', icon: Dna, title: 'Whole-genome VCF', state: status.source.present ? 'Connected' : 'Missing', ready: status.source.present, summary: 'Best current source for called small variants and the compact consumer report.', contribution: 'Millions of genomic positions represented as called differences from GRCh38.' },
     { id: 'reads', icon: Database, title: 'Compressed sequencing reads', state: status.reads.present ? 'Detected' : 'Not configured', ready: status.reads.present, summary: 'Original evidence for confirming calls and running specialized analysis.', contribution: 'Can support structural variants, HLA, repeat expansions, and re-calling after a full local pipeline.' },
     { id: 'ancestry', icon: FileSearch, title: 'AncestryDNA microarray', state: ancestryFamilyMatch ? 'Family match' : ancestryNeedsReview ? 'Review needed' : status.ancestry.present ? 'Connected' : 'Available to add', ready: status.ancestry.present && !ancestryNeedsReview, summary: ancestryFamilyMatch ? 'A separate parent sample with the expected shared-allele pattern.' : 'A second technology covering a selected set of common variants.', contribution: ancestryFamilyMatch ? `Consistent with a parent-child pair: ${(100 - ancestryValidation.ibs0Percent).toFixed(3)}% of ${ancestryValidation.overlap.toLocaleString()} overlapping autosomal calls share at least one allele. Your mother's genotypes stay separate and do not change Preston's trait results.` : ancestryNeedsReview ? `Kept separate: ${ancestryValidation.concordancePercent}% of ${ancestryValidation.overlap.toLocaleString()} overlapping calls agreed. Confirm that both files belong to the same person and sample before combining them.` : 'Useful for cross-checking overlapping rsIDs and filling some presumed-reference markers after strand and build harmonization.' },
-    { id: 'pgs', icon: Gauge, title: 'PGS Catalog models', state: 'Library ready', ready: true, summary: 'Published scoring files with effect alleles, weights, and evaluation metadata.', contribution: 'Adds reproducible polygenic models; it does not add new DNA and must be matched to ancestry and genome build.' },
+    { id: 'pgs', icon: Gauge, title: 'PGS Catalog models', state: 'Catalog online', ready: true, summary: 'Published scoring files with effect alleles, weights, and evaluation metadata.', contribution: 'Adds reproducible polygenic models; it does not add new DNA and must be matched to ancestry and genome build.' },
   ]
   const [selectedId, setSelectedId] = useState(layers[0].id)
   const selected = layers.find((layer) => layer.id === selectedId) ?? layers[0]

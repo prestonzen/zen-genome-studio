@@ -193,6 +193,12 @@ The **Genome Atlas** answers a different question: *what else could this dataset
 
 Height is intentionally shown as **No estimate yet**. The largest height map contains more than 12,000 independently associated variants; cherry-picking a few would create fake precision. Skin pigmentation is likewise held until the complete 36-marker HIrisPlex-S model is available.
 
+### 📊 Add a PGS Catalog model
+
+Open **Overview → Polygenic → Height**, then select **Add locally**. The studio downloads the public GRCh38-harmonized scoring file for [PGS003895](https://www.pgscatalog.org/score/PGS003895/) into the private Zen Genome Studio app-data directory. This model contains 62,419 variants and has evaluation results across European, South Asian, African, and an East Asian-containing multi-ancestry sample.
+
+Adding the model is only step one. A personal result remains hidden until a callable genotype dataset has been created, effect alleles and missing coverage have been checked, and the raw weighted sum has been normalized against an appropriate population reference. The current variant-only WGS VCF is not sufficient because an absent row can mean either homozygous reference or simply unreported. The official `pgsc_calc` workflow also currently labels WGS input unsupported, so the studio does not invoke it blindly. The model download sends no genotype or genome file to PGS Catalog.
+
 Check whether the private Genozip archive and local tools are ready without extracting anything:
 
 ```powershell

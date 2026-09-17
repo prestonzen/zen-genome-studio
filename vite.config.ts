@@ -3,6 +3,7 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { heightPgsModel } from './src/data/pgsCatalog.ts'
 
 function localBridge(): Plugin {
   return {
@@ -18,6 +19,24 @@ function localBridge(): Plugin {
         ? path.join(process.env.LOCALAPPDATA, 'ZenGenomeStudio', 'private')
         : path.join(process.env.HOME || process.cwd(), '.local', 'share', 'zen-genome-studio', 'private')
       const traitReportPath = env.TRAIT_REPORT_PATH || path.join(defaultReportRoot, 'trait-report.json')
+      const pgsDir = path.join(defaultReportRoot, 'pgs-catalog')
+      const pgsPath = path.join(pgsDir, heightPgsModel.fileName)
+      const pgsMetadataPath = path.join(pgsDir, `${heightPgsModel.id}.json`)
+
+      function pgsState(note?: string) {
+        let installed: boolean
+        let bytes: number | undefined
+        let installedAt: string | undefined
+        try {
+          const stats = fs.statSync(pgsPath)
+          installed = stats.isFile()
+          bytes = stats.size
+          installedAt = stats.mtime.toISOString()
+        } catch {
+          installed = false
+        }
+        return { mode: 'local', installed, bytes, installedAt, model: heightPgsModel, note }
+      }
 
       server.middlewares.use('/api/local-status', async (_request, response) => {
         response.setHeader('Content-Type', 'application/json')
@@ -81,6 +100,38 @@ function localBridge(): Plugin {
           response.end(JSON.stringify({ mode: 'local', available: true, tools, note: 'Checked inside the local Ubuntu environment.' }))
         } catch {
           response.end(JSON.stringify({ mode: 'local', available: false, tools, note: 'Ubuntu could not be checked yet.' }))
+        }
+      })
+
+      server.middlewares.use('/api/pgs-model', async (request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        if (request.method === 'GET') {
+          response.end(JSON.stringify(pgsState()))
+          return
+        }
+        if (request.method !== 'POST') {
+          response.statusCode = 405
+          response.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+
+        try {
+          if (!fs.existsSync(pgsPath)) {
+            const download = await fetch(heightPgsModel.downloadUrl, { signal: AbortSignal.timeout(60_000) })
+            if (!download.ok) throw new Error(`PGS Catalog returned ${download.status}`)
+            const payload = Buffer.from(await download.arrayBuffer())
+            if (payload[0] !== 0x1f || payload[1] !== 0x8b) throw new Error('Downloaded score is not a gzip file')
+            fs.mkdirSync(pgsDir, { recursive: true })
+            const temporaryPath = `${pgsPath}.download`
+            fs.writeFileSync(temporaryPath, payload, { mode: 0o600 })
+            fs.renameSync(temporaryPath, pgsPath)
+            fs.writeFileSync(pgsMetadataPath, `${JSON.stringify({ ...heightPgsModel, installedAt: new Date().toISOString() }, null, 2)}\n`, { mode: 0o600 })
+          }
+          response.end(JSON.stringify(pgsState('Public scoring weights downloaded locally. No genome data was uploaded.')))
+        } catch (error) {
+          response.statusCode = 502
+          response.end(JSON.stringify({ ...pgsState(), error: error instanceof Error ? error.message : 'The model could not be downloaded.' }))
         }
       })
 

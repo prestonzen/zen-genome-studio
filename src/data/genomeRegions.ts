@@ -101,9 +101,9 @@ export const genomeRegions: GenomeRegion[] = [
 export const polygenicModels = [
   {
     id: 'height-pgs', title: 'Height', status: 'Model available', scale: 'Thousands of variants', readiness: 55,
-    summary: 'A multi-ancestry height score exists, but a personal estimate still needs score retrieval, harmonization, ancestry normalization, and calibration.',
-    next: 'Connect a PGS Catalog scoring file and calculate it against a normalized genotype dataset.',
-    sourceUrl: 'https://www.pgscatalog.org/score/PGS005005/',
+    summary: 'A multi-ancestry height score is available locally, but a personal estimate still needs complete callable genotypes, ancestry normalization, and calibration.',
+    next: 'Build a callable genotype dataset from the reads. The current variant-only VCF cannot distinguish a true reference call from a site that was not reported.',
+    sourceUrl: 'https://www.pgscatalog.org/score/PGS003895/',
   },
   {
     id: 'skin-model', title: 'Skin pigmentation', status: 'Forensic model', scale: '36 markers', readiness: 68,

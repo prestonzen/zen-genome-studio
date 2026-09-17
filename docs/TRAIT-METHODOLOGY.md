@@ -37,6 +37,8 @@ The Discover screen starts in **Evidence first** mode. **Explore associations** 
 | Ancestry and haplogroups | These require population reference panels and dedicated mitochondrial/Y-chromosome methods rather than a few hand-picked markers. |
 | Structural variants, HLA, repeat expansions | These need read-level or specialized callers and cannot be reconstructed responsibly from a compact trait panel. |
 
+The studio's first downloadable height definition is PGS Catalog `PGS003895`, harmonized to GRCh38. Downloading its 62,419 public weights does not calculate a personal score. Calculation requires complete callable genotypes, local allele matching, and coverage checks; interpretation additionally requires a relevant reference distribution. The configured variant-only WGS VCF cannot prove reference genotypes at omitted sites, and the official `pgsc_calc` workflow currently labels WGS input unsupported. Until all stages are complete, the interface reports model readiness rather than a height estimate or percentile.
+
 ## Variant-only VCF limitation
 
 The configured WGS file stores variant calls rather than every genomic position. When a curated marker is absent, the first report treats it as **presumed reference**, not as a directly observed homozygous-reference call. This is common for a variant-only VCF but is not equivalent to inspecting read coverage at that site.
