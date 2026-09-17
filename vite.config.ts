@@ -71,7 +71,7 @@ function localBridge(): Plugin {
         response.setHeader('Cache-Control', 'no-store')
         const tools = { archive: false, aligner: false, variants: false, polygenic: false }
         try {
-          const script = 'for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done'
+          const script = 'for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done; exit 0'
           const output = execFileSync('wsl.exe', ['bash', '-lc', script], { encoding: 'utf8', timeout: 8000 })
           const found = new Set(output.split(/\r?\n/).filter(Boolean))
           tools.archive = found.has('genocat') || found.has('genounzip')
