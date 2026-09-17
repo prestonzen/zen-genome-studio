@@ -5,7 +5,9 @@ import { ChromosomeLandscape } from './components/ChromosomeLandscape'
 import { InsightRail } from './components/InsightRail'
 import { Sidebar } from './components/Sidebar'
 import { Topbar } from './components/Topbar'
+import { DiscoverView, SummaryView } from './components/TraitReport'
 import { useLocalStatus } from './hooks/useLocalStatus'
+import { useTraitReport } from './hooks/useTraitReport'
 import type { LandscapeTab, ViewName } from './types'
 
 function formatSource(bytes?: number, cloudMode = false) {
@@ -16,7 +18,8 @@ function formatSource(bytes?: number, cloudMode = false) {
 
 function App() {
   const { status, checking, refresh } = useLocalStatus()
-  const [view, setView] = useState<ViewName>('Overview')
+  const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
+  const [view, setView] = useState<ViewName>('Discover')
   const [tab, setTab] = useState<LandscapeTab>('Chromosomes')
   const [selectedChromosome, setSelectedChromosome] = useState('11')
   const [recordSafe, setRecordSafe] = useState(true)
@@ -42,9 +45,12 @@ function App() {
 
   function changeView(next: ViewName) {
     setView(next)
-    if (next === 'Explore') setTab('Clinical')
     if (next === 'Overview') setTab('Chromosomes')
-    if (next === 'Record') document.querySelector('.record-controls')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (next === 'Record') {
+      window.setTimeout(() => document.querySelector('.record-controls')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0)
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+    }
   }
 
   async function startRecording() {
@@ -101,6 +107,11 @@ function App() {
       <Sidebar active={view} onChange={changeView} />
       <Topbar connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} onOpenAnalysis={openAnalysis} />
 
+      {view === 'Discover' ? (
+        <DiscoverView report={report} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
+      ) : view === 'Summary' ? (
+        <SummaryView report={report} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
+      ) : (
       <main className="workspace">
         <section className="page-intro">
           <div>
@@ -148,6 +159,7 @@ function App() {
           />
         </div>
       </main>
+      )}
 
       {notice && <div className="toast" role="status">{notice}</div>}
     </div>

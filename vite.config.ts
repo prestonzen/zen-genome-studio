@@ -11,6 +11,10 @@ function localBridge(): Plugin {
       const dataDir = env.GENOME_DATA_DIR
       const vcfName = env.GENOME_VCF_NAME
       const openCravatUrl = env.OPENCRAVAT_URL || 'http://127.0.0.1:8080'
+      const defaultReportRoot = process.env.LOCALAPPDATA
+        ? path.join(process.env.LOCALAPPDATA, 'ZenGenomeStudio', 'private')
+        : path.join(process.env.HOME || process.cwd(), '.local', 'share', 'zen-genome-studio', 'private')
+      const traitReportPath = env.TRAIT_REPORT_PATH || path.join(defaultReportRoot, 'trait-report.json')
 
       server.middlewares.use('/api/local-status', async (_request, response) => {
         response.setHeader('Content-Type', 'application/json')
@@ -35,6 +39,27 @@ function localBridge(): Plugin {
         }
 
         response.end(JSON.stringify({ mode: 'local', source, opencravat, openCravatUrl }))
+      })
+
+      server.middlewares.use('/api/trait-report', (_request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        try {
+          const report = JSON.parse(fs.readFileSync(traitReportPath, 'utf8')) as Record<string, unknown>
+          response.end(JSON.stringify({ ...report, state: 'ready', mode: 'local' }))
+        } catch {
+          response.statusCode = 200
+          response.end(JSON.stringify({
+            state: 'missing',
+            mode: 'local',
+            build: 'GRCh38',
+            reportLabel: 'Private trait report',
+            sourceNote: 'Run the private trait-report builder once',
+            caveat: 'Traits are tendencies, not guarantees.',
+            traits: [],
+            quickRead: [],
+          }))
+        }
       })
     },
   }

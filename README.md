@@ -4,8 +4,8 @@
 
 ### Your genome stays private. Your discoveries get a stage.
 
-A privacy-first visual workspace for exploring whole-genome VCFs with
-[OpenCRAVAT](https://opencravat.org/) and creating polished, record-ready walkthroughs.
+A privacy-first visual workspace for exploring everyday genetic traits, reviewing
+whole-genome VCFs with [OpenCRAVAT](https://opencravat.org/), and creating polished, record-ready walkthroughs.
 
 [![Privacy-safe build](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml) [![MIT License](https://img.shields.io/badge/license-MIT-20c997.svg)](LICENSE) [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/) [![OpenCRAVAT](https://img.shields.io/badge/analysis-OpenCRAVAT-f5c451)](https://opencravat.org/) [![Cloudflare Pages](https://img.shields.io/badge/demo-Cloudflare%20Pages-f38020?logo=cloudflare&logoColor=white)](CLOUDFLARE.md)
 
@@ -29,7 +29,7 @@ A privacy-first visual workspace for exploring whole-genome VCFs with
 
 ## ✨ What is this?
 
-Zen Genome Studio adds a cinematic, screen-recording-friendly layer to a serious local genomics workflow. OpenCRAVAT performs the real annotation work; the studio gives creators and curious genome owners a clean way to navigate, explain, and record the journey.
+Zen Genome Studio adds a clear, screen-recording-friendly layer to a serious local genomics workflow. Its **Discover** and **Summary** views translate a small, curated set of non-medical markers into everyday language. OpenCRAVAT remains available for expert variant review.
 
 | Experience | What it does | Where your genome goes |
 | --- | --- | --- |
@@ -37,7 +37,7 @@ Zen Genome Studio adds a cinematic, screen-recording-friendly layer to a serious
 | ☁️ **Cloud preview** | Shows the visual interface with reference/demo content | No upload exists. No genome is received. |
 | 🎬 **Record-safe mode** | Hides sensitive details while you capture a walkthrough | Recording remains under your control. |
 
-The interface never invents personal findings. Clinical and trait views remain empty until genuine annotated results exist.
+The local interface never invents personal findings. Its private results appear only after a report has been generated from the configured VCF. The public cloud preview uses clearly labeled fictional examples and has no genome upload route.
 
 ## 🗺️ How it works
 
@@ -45,12 +45,15 @@ The interface never invents personal findings. Clinical and trait views remain e
 flowchart LR
     VCF[(Private WGS VCF)]:::private
     WSL[Ubuntu / WSL2]:::local
+    TRAITS[Private trait report]:::engine
     OC[OpenCRAVAT]:::engine
     STUDIO[Zen Genome Studio]:::studio
     VIDEO[Screen recording]:::output
     CF[Cloudflare preview]:::cloud
 
     VCF -->|read locally| WSL
+    VCF -->|read locally| TRAITS
+    TRAITS -->|plain-language results| STUDIO
     WSL --> OC
     OC -->|private results| STUDIO
     STUDIO -->|record-safe view| VIDEO
@@ -126,7 +129,17 @@ Stop both services with:
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-all.ps1
 ```
 
-### 5. Build a fast private preview
+### 5. Build the everyday-traits report
+
+Create a compact private report for the **Discover** and **Summary** screens:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-private-traits.ps1
+```
+
+The report is stored under your private Windows app-data directory, outside the repository. Refresh `http://127.0.0.1:4173/` and open **Discover**. The first `start-all.ps1` launch also builds this report automatically when it is missing.
+
+### 6. Build a fast OpenCRAVAT preview
 
 Before committing to a multi-hour whole-genome job, create a local preview containing up to 100 real variants from each chromosome or contig:
 
@@ -136,6 +149,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-preview-viewer.ps1
 ```
 
 The derived VCF and SQLite result stay under the private Ubuntu home directory, outside this repository. The original VCF is read-only and unchanged. OpenCRAVAT displays the annotated preview at `http://127.0.0.1:8080/`.
+
+## ✨ Everyday discovery
+
+![Zen Genome Studio Discover concept](docs/design/discover-concept.png)
+
+The first consumer report deliberately stays small and explainable:
+
+| Area | Current results | How to read them |
+| --- | --- | --- |
+| 👁️ Appearance | IrisPlex eye-colour probabilities, hair pigmentation, freckling signal | Eye colour has the strongest validated model; hair and freckling remain multi-gene tendencies. |
+| ☕ Senses & food | Lactase persistence, caffeine metabolism, bitter taste, earwax type | Some are strong single-marker traits; others are useful clues with environmental modifiers. |
+| 🏃 Performance | ACTN3 protein status and caffeine-response marker | Exploratory only. These do not prescribe training or predict athletic talent. |
+
+Every result includes an evidence grade, marker count, plain-language explanation, and research source. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
 
 ## 🔬 Annotation toolkit
 
@@ -161,9 +188,10 @@ The studio is designed for vertical-video walkthroughs without turning private b
 1. Open on **Whole genome overview** with **Record-safe mode** enabled.
 2. Hold on the chromosome landscape, then select chromosomes `11`, `17`, and `X`.
 3. Show the source status as **Found** without opening File Explorer.
-4. Visit **Clinical** and **Traits** and explain why the app does not simulate findings.
-5. Open the OpenCRAVAT Jobs/Store interface without revealing local paths.
-6. Return to the studio, start the recording timer, and end on **Nothing leaves this computer**.
+4. Open **Discover**, switch between **Appearance**, **Senses & food**, and **Performance**.
+5. Select **View full summary** and explain the Strong / Moderate / Exploratory evidence labels.
+6. Open OpenCRAVAT only when you want the technical variant view.
+7. Return to the studio, start the recording timer, and end on **Nothing leaves this computer**.
 
 For a TikTok crop, keep the chromosome landscape and recording rail in frame. Review every frame before posting, especially tabs, notifications, browser history, filenames, and result details.
 
@@ -172,6 +200,7 @@ For a TikTok crop, keep the chromosome landscape and recording rail in frame. Re
 - Raw VCF, BCF, BAM, CRAM, FASTQ, and Genozip files are blocked by `.gitignore`.
 - OpenCRAVAT SQLite databases, jobs, exports, logs, recordings, and local settings are blocked too.
 - The browser receives only a generic source label, presence state, and file size.
+- The local trait endpoint exposes only the compact derived report, never the source path or full genotype list.
 - Cloudflare mode has no upload route and always reports that no private genome is present.
 - GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
 - Public bug reports require a privacy confirmation before submission.
@@ -197,6 +226,7 @@ zen-genome-studio/
 ├── 🧬 src/                 React recording interface
 ├── ☁️ functions/           Privacy-safe Pages Function
 ├── 🎬 docs/design/         Public visual assets
+├── 📖 docs/                Trait methodology and limitations
 ├── 🛠️ scripts/             Setup, launch, and shutdown helpers
 ├── 🔒 SECURITY.md          Genome-data boundary
 ├── 🤝 CONTRIBUTING.md      Public contribution rules
@@ -225,6 +255,7 @@ Contributions are welcome, but use fictional examples only. Never attach genomic
 - [x] Record-safe creator interface
 - [x] OpenCRAVAT setup and lifecycle scripts
 - [x] Cloudflare Pages preview architecture
+- [x] Local consumer-trait report with Discover and Summary views
 - [ ] Import normalized OpenCRAVAT result summaries
 - [ ] Add an authenticated private-server connector
 - [ ] Publish reusable vertical-video scene presets

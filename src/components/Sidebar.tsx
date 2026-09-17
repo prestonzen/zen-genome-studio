@@ -1,9 +1,10 @@
-import { CircleDot, Compass, LayoutDashboard } from 'lucide-react'
+import { CircleDot, Compass, FileText, LayoutDashboard } from 'lucide-react'
 import type { ViewName } from '../types'
 
 const items = [
   { name: 'Overview' as const, icon: LayoutDashboard },
-  { name: 'Explore' as const, icon: Compass },
+  { name: 'Discover' as const, icon: Compass },
+  { name: 'Summary' as const, icon: FileText },
   { name: 'Record' as const, icon: CircleDot },
 ]
 
