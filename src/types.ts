@@ -87,3 +87,39 @@ export type TraitReport = {
   traits: TraitResult[]
   quickRead: string[]
 }
+
+export type ClinicalFindingCategory = 'carrier' | 'incidental'
+
+export type ClinicalFinding = {
+  id: string
+  category: ClinicalFindingCategory
+  gene: string
+  transcript: string
+  variant: string
+  zygosity: string
+  classification: string
+  inheritance: string
+  associatedCondition: string
+  plainMeaning: string
+  reportFollowUp: string
+}
+
+export type ClinicalReport = {
+  state: 'ready' | 'missing'
+  mode: DeploymentMode
+  reportLabel: string
+  reportDate?: string
+  sourceNote: string
+  primaryFindings: {
+    status: string
+    note: string
+  }
+  secondaryFindings: {
+    status: string
+    panel: string
+    note: string
+  }
+  carrierFindings: ClinicalFinding[]
+  incidentalFindings: ClinicalFinding[]
+  limitations: string[]
+}

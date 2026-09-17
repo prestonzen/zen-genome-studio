@@ -19,6 +19,7 @@ function localBridge(): Plugin {
         ? path.join(process.env.LOCALAPPDATA, 'ZenGenomeStudio', 'private')
         : path.join(process.env.HOME || process.cwd(), '.local', 'share', 'zen-genome-studio', 'private')
       const traitReportPath = env.TRAIT_REPORT_PATH || path.join(defaultReportRoot, 'trait-report.json')
+      const clinicalReportPath = env.CLINICAL_REPORT_PATH || path.join(defaultReportRoot, 'clinical-report.json')
       const pgsDir = path.join(defaultReportRoot, 'pgs-catalog')
       const pgsPath = path.join(pgsDir, heightPgsModel.fileName)
       const pgsMetadataPath = path.join(pgsDir, `${heightPgsModel.id}.json`)
@@ -152,6 +153,27 @@ function localBridge(): Plugin {
             caveat: 'Traits are tendencies, not guarantees.',
             traits: [],
             quickRead: [],
+          }))
+        }
+      })
+
+      server.middlewares.use('/api/clinical-report', (_request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        try {
+          const report = JSON.parse(fs.readFileSync(clinicalReportPath, 'utf8')) as Record<string, unknown>
+          response.end(JSON.stringify({ ...report, state: 'ready', mode: 'local' }))
+        } catch {
+          response.end(JSON.stringify({
+            state: 'missing',
+            mode: 'local',
+            reportLabel: 'Private clinical report',
+            sourceNote: 'No clinician-reviewed summary is connected',
+            primaryFindings: { status: 'Not connected', note: 'Add a private clinical-report.json file to view the laboratory report here.' },
+            secondaryFindings: { status: 'Not connected', panel: 'Not connected', note: 'No clinical report data is available.' },
+            carrierFindings: [],
+            incidentalFindings: [],
+            limitations: [],
           }))
         }
       })

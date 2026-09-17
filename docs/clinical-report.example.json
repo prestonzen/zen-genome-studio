@@ -1,0 +1,19 @@
+{
+  "reportLabel": "Clinician-interpreted WGS report",
+  "reportDate": "YYYY-MM-DD",
+  "sourceNote": "Transcribed locally from a clinician-reviewed report",
+  "primaryFindings": {
+    "status": "As reported",
+    "note": "Use the wording from the report without reclassification."
+  },
+  "secondaryFindings": {
+    "status": "As reported",
+    "panel": "Panel name and version",
+    "note": "Use the wording from the report without reclassification."
+  },
+  "carrierFindings": [],
+  "incidentalFindings": [],
+  "limitations": [
+    "This local summary is not a substitute for the signed report or genetic counseling."
+  ]
+}

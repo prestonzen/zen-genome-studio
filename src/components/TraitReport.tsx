@@ -7,7 +7,9 @@ import {
   Dumbbell,
   Ear,
   Eye,
+  EyeOff,
   FileText,
+  HeartPulse,
   Info,
   Leaf,
   Lightbulb,
@@ -19,7 +21,7 @@ import {
   Utensils,
   Wine,
 } from 'lucide-react'
-import type { EvidenceLevel, LocalStatus, TraitCategory, TraitReport, TraitResult, ViewName } from '../types'
+import type { ClinicalFinding, ClinicalReport, EvidenceLevel, LocalStatus, TraitCategory, TraitReport, TraitResult, ViewName } from '../types'
 import { GenomeAtlas } from './GenomeAtlas'
 import { TermTip } from './TermTip'
 
@@ -28,6 +30,14 @@ type TraitReportProps = {
   loading: boolean
   onRefresh: () => void
   onNavigate: (view: ViewName) => void
+}
+
+type SummaryViewProps = TraitReportProps & {
+  clinicalReport: ClinicalReport
+  clinicalLoading: boolean
+  onRefreshClinical: () => void
+  recordSafe: boolean
+  onToggleSafe: () => void
 }
 
 const categories: TraitCategory[] = ['Appearance', 'Senses & food', 'Performance', 'Curiosities']
@@ -243,15 +253,73 @@ export function DiscoverView({ report, status, loading, onRefresh, onNavigate }:
   )
 }
 
-export function SummaryView({ report, loading, onRefresh, onNavigate }: TraitReportProps) {
+function ClinicalFindingRow({ finding }: { finding: ClinicalFinding }) {
+  return (
+    <details className="clinical-finding-row">
+      <summary>
+        <span className="clinical-gene">{finding.gene}</span>
+        <span><strong>{finding.associatedCondition}</strong><small>{finding.variant}</small></span>
+        <span className={`clinical-class ${finding.classification.toLowerCase().replaceAll(' ', '-')}`}>{finding.classification}</span>
+        <ArrowRight size={16} />
+      </summary>
+      <div className="clinical-finding-detail">
+        <dl>
+          <div><dt>Transcript</dt><dd>{finding.transcript}</dd></div>
+          <div><dt>Zygosity</dt><dd>{finding.zygosity}</dd></div>
+          <div><dt>Inheritance</dt><dd>{finding.inheritance}</dd></div>
+        </dl>
+        <p><strong>What the report means</strong>{finding.plainMeaning}</p>
+        <p><strong>Follow-up written in the report</strong>{finding.reportFollowUp}</p>
+      </div>
+    </details>
+  )
+}
+
+function ClinicalReportPanel({ clinicalReport, clinicalLoading, onRefreshClinical, recordSafe, onToggleSafe }: Pick<SummaryViewProps, 'clinicalReport' | 'clinicalLoading' | 'onRefreshClinical' | 'recordSafe' | 'onToggleSafe'>) {
+  const ready = clinicalReport.state === 'ready'
+  return (
+    <section className="clinical-report-panel" aria-labelledby="clinical-report-title">
+      <header>
+        <div><span className="section-kicker">CLINICIAN-REVIEWED</span><h2 id="clinical-report-title"><HeartPulse size={20} /> Clinical report</h2><p>Imported from the interpreted WGS report. These labels are displayed as reported and are not recalculated by Zen Genome Studio.</p></div>
+        <button className="privacy-command" type="button" onClick={onToggleSafe}>{recordSafe ? <Eye size={16} /> : <EyeOff size={16} />}{recordSafe ? 'Reveal privately' : 'Hide for recording'}</button>
+      </header>
+      {!ready ? (
+        <div className="clinical-empty"><ShieldCheck size={22} /><span><strong>{clinicalReport.mode === 'cloud' ? 'Private by design' : 'Clinical summary not connected'}</strong><small>{clinicalReport.sourceNote}</small></span>{clinicalReport.mode === 'local' && <button type="button" onClick={onRefreshClinical}><RefreshCw size={15} className={clinicalLoading ? 'spin' : ''} /> Check again</button>}</div>
+      ) : recordSafe ? (
+        <div className="clinical-privacy-lock"><ShieldCheck size={26} /><div><strong>Clinical details hidden</strong><p>Record-safe mode conceals diagnoses, genes, variants, and finding counts. Reveal only when you are off camera and in private.</p></div></div>
+      ) : (
+        <div className="clinical-report-content">
+          <div className="clinical-source-line"><span><FileText size={16} /> {clinicalReport.reportLabel}</span><span>{clinicalReport.reportDate ? `Report date ${clinicalReport.reportDate}` : 'Local report'}</span><b>Not recalculated</b></div>
+          <div className="clinical-status-grid">
+            <article><small>Primary findings</small><strong>{clinicalReport.primaryFindings.status}</strong><p>{clinicalReport.primaryFindings.note}</p></article>
+            <article><small>ACMG secondary findings</small><strong>{clinicalReport.secondaryFindings.status}</strong><span>{clinicalReport.secondaryFindings.panel}</span><p>{clinicalReport.secondaryFindings.note}</p></article>
+          </div>
+          <section className="clinical-group">
+            <div><span><strong>Incidental findings</strong><small>Clinically relevant findings unrelated to the original reason for testing.</small></span><b>{clinicalReport.incidentalFindings.length}</b></div>
+            {clinicalReport.incidentalFindings.map((finding) => <ClinicalFindingRow finding={finding} key={finding.id} />)}
+          </section>
+          <section className="clinical-group">
+            <div><span><strong>Carrier findings</strong><small>One altered copy in a recessive-disease gene; a carrier result is not the same as having that recessive condition.</small></span><b>{clinicalReport.carrierFindings.length}</b></div>
+            {clinicalReport.carrierFindings.map((finding) => <ClinicalFindingRow finding={finding} key={finding.id} />)}
+          </section>
+          <details className="clinical-limitations"><summary>Report limitations <ArrowRight size={15} /></summary><ul>{clinicalReport.limitations.map((item) => <li key={item}>{item}</li>)}</ul></details>
+        </div>
+      )}
+    </section>
+  )
+}
+
+export function SummaryView({ report, loading, onRefresh, onNavigate, clinicalReport, clinicalLoading, onRefreshClinical, recordSafe, onToggleSafe }: SummaryViewProps) {
   const grouped = categories.map((category) => ({ category, traits: report.traits.filter((trait) => trait.category === category) }))
   return (
     <main className="workspace consumer-workspace">
       <section className="consumer-intro summary-intro"><div><h1>Your genome, in plain English</h1><p>The useful highlights first. Evidence and limitations stay attached.</p></div><button type="button" onClick={() => window.print()}><FileText size={17} /> Print or save</button></section>
       <ReportSourceStrip report={report} />
-      {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
-        <div className="summary-grid">
-          <section className="summary-paper">
+      <div className="summary-grid">
+        <section className="summary-paper">
+          <ClinicalReportPanel clinicalReport={clinicalReport} clinicalLoading={clinicalLoading} onRefreshClinical={onRefreshClinical} recordSafe={recordSafe} onToggleSafe={onToggleSafe} />
+          {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
+            <>
             <header><h2>The short version</h2><p>{report.caveat}</p></header>
             <div className="summary-lead">
               {report.quickRead.map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, '0')}</span><p>{item}</p></div>)}
@@ -262,17 +330,18 @@ export function SummaryView({ report, loading, onRefresh, onNavigate }: TraitRep
                 {traits.map((trait) => <article key={trait.id}><div><strong><TraitTitle trait={trait} /></strong><EvidenceTag level={trait.evidence} /></div><h4>{trait.result}</h4><p>{trait.summary}</p><a href={trait.sourceUrl} target="_blank" rel="noreferrer">{trait.sourceName}</a></article>)}
               </section>
             ))}
-          </section>
-          <aside className="summary-rail">
-            <h2>How to read this</h2>
-            <div><EvidenceTag level="Strong" /><p>Validated model or a marker with a large, repeatedly observed effect.</p></div>
-            <div><EvidenceTag level="Moderate" /><p>Useful signal, but several genes or life factors can change the outcome.</p></div>
-            <div><EvidenceTag level="Exploratory" /><p>Interesting biology, not a prediction or a basis for training decisions.</p></div>
-            <section><Info size={18} /><p>Medical carrier and incidental findings belong in the clinician-reviewed report. This page intentionally focuses on non-medical traits.</p></section>
-            <button type="button" onClick={() => onNavigate('Discover')}><ArrowRight size={17} /> Back to Discover</button>
-          </aside>
-        </div>
-      )}
+            </>
+          )}
+        </section>
+        <aside className="summary-rail">
+          <h2>How to read this</h2>
+          <div><EvidenceTag level="Strong" /><p>Validated model or a marker with a large, repeatedly observed effect.</p></div>
+          <div><EvidenceTag level="Moderate" /><p>Useful signal, but several genes or life factors can change the outcome.</p></div>
+          <div><EvidenceTag level="Exploratory" /><p>Interesting biology, not a prediction or a basis for training decisions.</p></div>
+          <section><Info size={18} /><p>Clinical findings come from the interpreted laboratory report. Consumer traits and PGS results are separate evidence layers and never override it.</p></section>
+          <button type="button" onClick={() => onNavigate('Discover')}><ArrowRight size={17} /> Back to Discover</button>
+        </aside>
+      </div>
     </main>
   )
 }

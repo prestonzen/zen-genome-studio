@@ -142,7 +142,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-private-traits.ps1
 
 The report is stored under your private Windows app-data directory, outside the repository. Refresh `http://127.0.0.1:4173/` and open **Discover**. The first `start-all.ps1` launch also builds this report automatically when it is missing.
 
-### 6. Build a fast OpenCRAVAT preview
+### 6. Connect a clinician-reviewed report
+
+The **Summary** screen can display carrier and incidental findings from a compact `clinical-report.json` file. This source is deliberately separate from consumer traits and polygenic scores: the studio displays the laboratory's categories and classifications without recalculating them.
+
+1. Copy `docs/clinical-report.example.json` to `%LOCALAPPDATA%\ZenGenomeStudio\private\clinical-report.json`.
+2. Transcribe only findings already stated in a clinician-reviewed report. Do not infer or reclassify variants.
+3. Open **Summary** and turn off **Record-safe mode** only when you are in private.
+
+The PDF itself stays in your private medical folder. Neither the PDF nor the compact local summary belongs in Git.
+
+### 7. Build a fast OpenCRAVAT preview
 
 Before committing to a multi-hour whole-genome job, create a local preview containing up to 100 real variants from each chromosome or contig:
 
@@ -248,9 +258,10 @@ The studio is designed for vertical-video walkthroughs without turning private b
 4. Open **Discover**, switch between **Appearance**, **Senses & food**, **Performance**, and **Curiosities**.
 5. Switch to **Genome Atlas** and pause on height: **No estimate yet - full calibrated polygenic score required**.
 6. Scroll to the read-level pipeline rows and show that the raw archive is detected locally.
-7. Select **View full summary** and explain the Strong / Moderate / Exploratory evidence labels.
-8. Open OpenCRAVAT only when you want the technical variant view.
-9. Return to the studio, start the recording timer, and end on **Raw DNA stays on this device**.
+7. Select **View full summary** and show that the clinical section is concealed by **Record-safe mode**.
+8. Explain the Strong / Moderate / Exploratory evidence labels without revealing private clinical findings.
+9. Open OpenCRAVAT only when you want the technical variant view.
+10. Return to the studio, start the recording timer, and end on **Raw DNA stays on this device**.
 
 For a TikTok crop, keep the chromosome landscape and recording rail in frame. Review every frame before posting, especially tabs, notifications, browser history, filenames, and result details.
 
@@ -260,6 +271,7 @@ For a TikTok crop, keep the chromosome landscape and recording rail in frame. Re
 - OpenCRAVAT SQLite databases, jobs, exports, logs, recordings, and local settings are blocked too.
 - The browser receives only a generic source label, presence state, and file size.
 - The local trait endpoint exposes only the compact derived report, never the source path or full genotype list.
+- The clinical endpoint reads a compact summary from private app data; report PDFs and findings are never bundled into the site.
 - Cloudflare mode has no upload route and always reports that no private genome is present.
 - GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
 - Public bug reports require a privacy confirmation before submission.
@@ -315,6 +327,7 @@ Contributions are welcome, but use fictional examples only. Never attach genomic
 - [x] OpenCRAVAT setup and lifecycle scripts
 - [x] Cloudflare Pages preview architecture
 - [x] Local consumer-trait report with Discover and Summary views
+- [x] Private clinician-report layer with record-safe concealment
 - [ ] Import normalized OpenCRAVAT result summaries
 - [ ] Add an authenticated private-server connector
 - [ ] Publish reusable vertical-video scene presets

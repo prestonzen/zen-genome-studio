@@ -8,6 +8,7 @@ import { Sidebar } from './components/Sidebar'
 import { Topbar } from './components/Topbar'
 import { DiscoverView, SummaryView } from './components/TraitReport'
 import { useLocalStatus } from './hooks/useLocalStatus'
+import { useClinicalReport } from './hooks/useClinicalReport'
 import { useTraitReport } from './hooks/useTraitReport'
 import type { LandscapeTab, ViewName } from './types'
 
@@ -20,6 +21,7 @@ function formatSource(bytes?: number, cloudMode = false) {
 function App() {
   const { status, checking, refresh } = useLocalStatus()
   const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
+  const { clinicalReport, clinicalLoading, refreshClinicalReport } = useClinicalReport()
   const [view, setView] = useState<ViewName>('Discover')
   const [tab, setTab] = useState<LandscapeTab>('Genome map')
   const [selectedChromosome, setSelectedChromosome] = useState('11')
@@ -118,7 +120,17 @@ function App() {
       {view === 'Discover' ? (
         <DiscoverView report={report} status={status} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
       ) : view === 'Summary' ? (
-        <SummaryView report={report} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
+        <SummaryView
+          report={report}
+          loading={reportLoading}
+          onRefresh={refreshReport}
+          onNavigate={changeView}
+          clinicalReport={clinicalReport}
+          clinicalLoading={clinicalLoading}
+          onRefreshClinical={refreshClinicalReport}
+          recordSafe={recordSafe}
+          onToggleSafe={() => setRecordSafe((current) => !current)}
+        />
       ) : (
       <main className="workspace">
         <section className="page-intro">
