@@ -126,14 +126,17 @@ function PolygenicView() {
   )
 }
 
-function DataLayersView({ status }: Pick<ChromosomeLandscapeProps, 'status'>) {
+function DataLayersView({ status, report }: Pick<ChromosomeLandscapeProps, 'status' | 'report'>) {
+  const ancestryValidation = report.sourceValidation?.ancestry
+  const ancestryNeedsReview = ancestryValidation?.status === 'review'
   const layers = [
     { id: 'vcf', icon: Dna, title: 'Whole-genome VCF', state: status.source.present ? 'Connected' : 'Missing', ready: status.source.present, summary: 'Best current source for called small variants and the compact consumer report.', contribution: 'Millions of genomic positions represented as called differences from GRCh38.' },
     { id: 'reads', icon: Database, title: 'Compressed sequencing reads', state: status.reads.present ? 'Detected' : 'Not configured', ready: status.reads.present, summary: 'Original evidence for confirming calls and running specialized analysis.', contribution: 'Can support structural variants, HLA, repeat expansions, and re-calling after a full local pipeline.' },
-    { id: 'ancestry', icon: FileSearch, title: 'AncestryDNA microarray', state: status.ancestry.present ? 'Connected' : 'Available to add', ready: status.ancestry.present, summary: 'A second technology covering a selected set of common variants.', contribution: 'Useful for cross-checking overlapping rsIDs and filling some presumed-reference markers after strand and build harmonization.' },
+    { id: 'ancestry', icon: FileSearch, title: 'AncestryDNA microarray', state: ancestryNeedsReview ? 'Review needed' : status.ancestry.present ? 'Connected' : 'Available to add', ready: status.ancestry.present && !ancestryNeedsReview, summary: 'A second technology covering a selected set of common variants.', contribution: ancestryNeedsReview ? `Kept separate: ${ancestryValidation.concordancePercent}% of ${ancestryValidation.overlap.toLocaleString()} overlapping calls agreed. Confirm that both files belong to the same person and sample before combining them.` : 'Useful for cross-checking overlapping rsIDs and filling some presumed-reference markers after strand and build harmonization.' },
     { id: 'pgs', icon: Gauge, title: 'PGS Catalog models', state: 'Library ready', ready: true, summary: 'Published scoring files with effect alleles, weights, and evaluation metadata.', contribution: 'Adds reproducible polygenic models; it does not add new DNA and must be matched to ancestry and genome build.' },
   ]
-  const [selected, setSelected] = useState(layers[0])
+  const [selectedId, setSelectedId] = useState(layers[0].id)
+  const selected = layers.find((layer) => layer.id === selectedId) ?? layers[0]
   const [pipeline, setPipeline] = useState<{ available: boolean; tools: { archive: boolean; aligner: boolean; variants: boolean; polygenic: boolean }; note: string } | null>(null)
   const [checking, setChecking] = useState(false)
 
@@ -162,7 +165,7 @@ function DataLayersView({ status }: Pick<ChromosomeLandscapeProps, 'status'>) {
       <div className="layer-stack">
         {layers.map((layer, index) => {
           const Icon = layer.icon
-          return <button key={layer.id} type="button" className={selected.id === layer.id ? 'active' : ''} onClick={() => setSelected(layer)} aria-expanded={selected.id === layer.id}><span className="layer-index">0{index + 1}</span><Icon size={21} /><span><strong>{layer.title}</strong><small>{layer.summary}</small></span><em className={layer.ready ? 'ready' : ''}>{layer.ready && <Check size={12} />}{layer.state}</em><ChevronRight size={17} /></button>
+          return <button key={layer.id} type="button" className={selected.id === layer.id ? 'active' : ''} onClick={() => setSelectedId(layer.id)} aria-expanded={selected.id === layer.id}><span className="layer-index">0{index + 1}</span><Icon size={21} /><span><strong>{layer.title}</strong><small>{layer.summary}</small></span><em className={layer.ready ? 'ready' : ''}>{layer.ready && <Check size={12} />}{layer.state}</em><ChevronRight size={17} /></button>
         })}
       </div>
       <article className="layer-detail"><span>SELECTED LAYER</span><h3>{selected.title}</h3><p>{selected.contribution}</p><div><Database size={18} /><p><strong>Privacy boundary</strong>{selected.id === 'pgs' ? 'Only public score definitions are downloaded. Personal genotype calculations remain local.' : 'The browser receives status and summaries, never the original genomic file.'}</p></div></article>
@@ -180,7 +183,7 @@ export function ChromosomeLandscape(props: ChromosomeLandscapeProps) {
     <section className="landscape-panel interactive-landscape">
       <div className="landscape-header"><div><h2>Genome explorer</h2><p>Move from chromosomes to genes, models, and source layers.</p></div><span className="preview-label">INTERACTIVE</span></div>
       <div className="tab-list" role="tablist" aria-label="Genome explorer views">{tabs.map((tab) => <button key={tab} className={props.activeTab === tab ? 'active' : ''} onClick={() => props.onTabChange(tab)} role="tab" aria-selected={props.activeTab === tab} type="button">{tab}</button>)}</div>
-      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : props.activeTab === 'Polygenic' ? <PolygenicView /> : <DataLayersView status={props.status} />}</div>
+      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : props.activeTab === 'Polygenic' ? <PolygenicView /> : <DataLayersView status={props.status} report={props.report} />}</div>
     </section>
   )
 }

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'
 import zlib from 'node:zlib'
+import { strFromU8, unzipSync } from 'fflate'
 
 const args = new Map()
 for (let index = 2; index < process.argv.length; index += 2) {
@@ -10,9 +11,10 @@ for (let index = 2; index < process.argv.length; index += 2) {
 
 const vcfPath = args.get('--vcf')
 const outputPath = args.get('--output')
+const ancestryPath = args.get('--ancestry')
 
 if (!vcfPath || !outputPath) {
-  console.error('Usage: node build-private-traits.mjs --vcf <file.vcf.gz> --output <trait-report.json>')
+  console.error('Usage: node build-private-traits.mjs --vcf <file.vcf.gz> --output <trait-report.json> [--ancestry <AncestryDNA.zip>]')
   process.exit(1)
 }
 
@@ -71,11 +73,98 @@ for await (const line of lines) {
   })
 }
 
+const ancestryObserved = new Map()
+const ancestryAll = new Map()
+let ancestryReady = false
+
+if (ancestryPath && fs.existsSync(ancestryPath)) {
+  let ancestryText = ''
+  if (ancestryPath.toLowerCase().endsWith('.zip')) {
+    const entries = unzipSync(fs.readFileSync(ancestryPath))
+    const entryName = Object.keys(entries).find((name) => /\.(txt|csv)$/i.test(name))
+    if (!entryName) throw new Error('No text-format DNA export was found inside the AncestryDNA archive.')
+    ancestryText = strFromU8(entries[entryName])
+  } else {
+    ancestryText = fs.readFileSync(ancestryPath, 'utf8')
+  }
+
+  const build37 = /build\s*37(?:\.1)?\s+coordinates/i.test(ancestryText)
+  const forwardStrand = /forward\s*\(\+\)\s*strand/i.test(ancestryText)
+  ancestryReady = build37 && forwardStrand
+
+  if (!ancestryReady) {
+    throw new Error('AncestryDNA source must declare build 37 coordinates and the forward strand before it can be used.')
+  }
+
+  for (const line of ancestryText.split(/\r?\n/)) {
+    if (!line.startsWith('rs')) continue
+    const fields = line.split(/[\t,]/)
+    const rsid = fields[0]
+    if (!/^rs\d+$/.test(rsid) || fields.length < 5) continue
+    const genotype = [fields[3], fields[4]].map((allele) => allele.trim().toUpperCase())
+    if (genotype.some((allele) => !/^[ACGT]$/.test(allele))) continue
+    ancestryAll.set(rsid, genotype)
+    if (Object.hasOwn(markers, rsid)) ancestryObserved.set(rsid, { genotype })
+  }
+}
+
+function sameGenotype(left, right) {
+  return [...left].sort().join('') === [...right].sort().join('')
+}
+
+const crossChecked = [...ancestryObserved.keys()].filter((rsid) => observed.has(rsid))
+const concordant = crossChecked.filter((rsid) => sameGenotype(observed.get(rsid).genotype, ancestryObserved.get(rsid).genotype))
+const discordant = crossChecked.length - concordant.length
+
+async function compareSources() {
+  if (!ancestryReady) return null
+  let overlap = 0
+  let matching = 0
+  const complement = { A: 'T', T: 'A', C: 'G', G: 'C' }
+  const vcfInput = fs.createReadStream(vcfPath)
+  const vcfSource = vcfPath.endsWith('.gz') ? vcfInput.pipe(zlib.createGunzip()) : vcfInput
+  const vcfLines = readline.createInterface({ input: vcfSource, crlfDelay: Infinity })
+
+  for await (const line of vcfLines) {
+    if (!line || line.startsWith('#')) continue
+    const fields = line.split('\t')
+    if (fields.length < 10 || (fields[6] !== 'PASS' && fields[6] !== '.')) continue
+    const rsid = fields[2].split(';').find((id) => ancestryAll.has(id))
+    if (!rsid) continue
+    const formatKeys = fields[8].split(':')
+    const sampleValues = fields[9].split(':')
+    const gt = sampleValues[formatKeys.indexOf('GT')]
+    if (!gt || gt.includes('.')) continue
+    const alleles = [fields[3], ...fields[4].split(',')]
+    const genotype = gt.split(/[|/]/).map((value) => alleles[Number(value)])
+    if (genotype.some((allele) => !/^[ACGT]$/.test(allele))) continue
+
+    const ancestryGenotype = ancestryAll.get(rsid)
+    const directMatch = sameGenotype(genotype, ancestryGenotype)
+    const complementedMatch = sameGenotype(genotype, ancestryGenotype.map((allele) => complement[allele]))
+    overlap++
+    if (directMatch || complementedMatch) matching++
+  }
+
+  const concordancePercent = overlap ? Math.round((matching / overlap) * 10_000) / 100 : 0
+  return {
+    status: overlap >= 1_000 && concordancePercent >= 95 ? 'compatible' : 'review',
+    overlap,
+    matching,
+    concordancePercent,
+  }
+}
+
+const sourceComparison = await compareSources()
+const ancestryUsable = sourceComparison?.status === 'compatible'
+
 function call(rsid) {
   const direct = observed.get(rsid)
-  if (direct) return { ...direct, observed: true }
+  if (direct) return { ...direct, observed: true, source: 'vcf' }
+  const ancestry = ancestryUsable ? ancestryObserved.get(rsid) : null
+  if (ancestry) return { ...ancestry, filter: 'ANCESTRY_ARRAY', depth: 0, quality: 0, observed: true, source: 'ancestry' }
   const ref = markers[rsid].ref
-  return { genotype: [ref, ref], filter: 'PRESUMED_REF', depth: 0, quality: 0, observed: false }
+  return { genotype: [ref, ref], filter: 'PRESUMED_REF', depth: 0, quality: 0, observed: false, source: 'presumed' }
 }
 
 function dosage(rsid, allele) {
@@ -83,10 +172,25 @@ function dosage(rsid, allele) {
 }
 
 function callNote(rsids) {
-  const direct = rsids.filter((rsid) => call(rsid).observed).length
+  const direct = rsids.filter((rsid) => observed.has(rsid) || (ancestryUsable && ancestryObserved.has(rsid))).length
   const inferred = rsids.length - direct
-  if (!inferred) return `${direct} marker${direct === 1 ? '' : 's'} directly observed in the VCF`
-  return `${direct} directly observed; ${inferred} presumed reference in the variant-only VCF`
+  if (!ancestryUsable) {
+    if (!inferred) return `${direct} marker${direct === 1 ? '' : 's'} directly observed in the VCF`
+    return `${direct} directly observed; ${inferred} presumed reference in the variant-only VCF`
+  }
+
+  const vcfCount = rsids.filter((rsid) => observed.has(rsid)).length
+  const ancestryOnly = rsids.filter((rsid) => !observed.has(rsid) && ancestryObserved.has(rsid)).length
+  const inBoth = rsids.filter((rsid) => observed.has(rsid) && ancestryObserved.has(rsid)).length
+  const detail = [
+    vcfCount ? `${vcfCount} in WGS` : '',
+    ancestryOnly ? `${ancestryOnly} added by AncestryDNA` : '',
+    inBoth ? `${inBoth} checked in both` : '',
+  ].filter(Boolean).join(', ')
+  const prefix = inferred
+    ? `${direct} directly observed across your files`
+    : `${direct} marker${direct === 1 ? '' : 's'} directly observed across your files`
+  return `${prefix}${detail ? ` (${detail})` : ''}${inferred ? `; ${inferred} presumed reference` : ''}`
 }
 
 function roundedPercentages(values) {
@@ -234,8 +338,17 @@ const report = {
   build: 'GRCh38',
   generatedAt: new Date().toISOString(),
   reportLabel: 'Private trait report',
-  sourceNote: 'Derived locally from a variant-only whole-genome VCF',
-  caveat: 'Absent sites are presumed reference because this VCF stores variants only. Confirm important calls against a gVCF or read data. Traits are tendencies, not guarantees.',
+  sourceNote: ancestryUsable
+    ? `Derived locally from the WGS VCF plus ${ancestryObserved.size} curated AncestryDNA markers`
+    : ancestryReady
+      ? 'Derived from the WGS VCF; AncestryDNA is connected but kept separate after source validation'
+      : 'Derived locally from a variant-only whole-genome VCF',
+  caveat: ancestryUsable
+    ? `WGS remains primary. AncestryDNA build 37 calls fill only curated rsID gaps; ${crossChecked.length} markers were cross-checked and ${discordant} differed. Confirm important results against aligned reads. Traits are tendencies, not guarantees.`
+    : ancestryReady
+      ? `AncestryDNA was not blended: ${sourceComparison.concordancePercent}% of ${sourceComparison.overlap.toLocaleString('en-US')} overlapping calls agreed. Confirm both files belong to the same person and sample before combining them. WGS remains primary.`
+      : 'Absent sites are presumed reference because this VCF stores variants only. Confirm important calls against a gVCF or read data. Traits are tendencies, not guarantees.',
+  sourceValidation: sourceComparison ? { ancestry: sourceComparison } : undefined,
   eyeProbabilities: { brown, intermediate, blue },
   traits,
   quickRead: [

@@ -64,6 +64,14 @@ export type TraitReport = {
   reportLabel: string
   sourceNote: string
   caveat: string
+  sourceValidation?: {
+    ancestry: {
+      status: 'compatible' | 'review'
+      overlap: number
+      matching: number
+      concordancePercent: number
+    }
+  }
   eyeProbabilities?: {
     brown: number
     intermediate: number

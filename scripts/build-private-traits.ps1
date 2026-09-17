@@ -27,7 +27,22 @@ $privateDir = Join-Path $env:LOCALAPPDATA 'ZenGenomeStudio\private'
 $reportPath = Join-Path $privateDir 'trait-report.json'
 New-Item -ItemType Directory -Force -Path $privateDir | Out-Null
 
-& node (Join-Path $PSScriptRoot 'build-private-traits.mjs') --vcf $vcfPath --output $reportPath
+$nodeArgs = @(
+    (Join-Path $PSScriptRoot 'build-private-traits.mjs'),
+    '--vcf', $vcfPath,
+    '--output', $reportPath
+)
+
+if ($settings.ANCESTRY_DNA_NAME) {
+    $ancestryPath = Join-Path $settings.GENOME_DATA_DIR $settings.ANCESTRY_DNA_NAME
+    if (Test-Path -LiteralPath $ancestryPath -PathType Leaf) {
+        $nodeArgs += @('--ancestry', $ancestryPath)
+    } else {
+        Write-Warning 'The configured AncestryDNA source was not found; continuing with the WGS VCF only.'
+    }
+}
+
+& node @nodeArgs
 if ($LASTEXITCODE -ne 0) {
     throw 'The private trait report could not be generated.'
 }

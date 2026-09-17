@@ -205,7 +205,13 @@ An AncestryDNA raw-data export can add a second, independent microarray layer fo
 powershell -ExecutionPolicy Bypass -File .\scripts\inspect-ancestry-dna.ps1 -Path "C:\private\AncestryDNA.zip"
 ```
 
-After inspection, keep the export beside the other private genome files and set `ANCESTRY_DNA_NAME` in `.env.local`. The public repository and Cloudflare preview never receive it.
+After inspection, keep the export beside the other private genome files and set `ANCESTRY_DNA_NAME` in `.env.local`. Rebuild the private trait report to let directly typed AncestryDNA markers fill curated gaps in the variant-only WGS file:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-private-traits.ps1
+```
+
+WGS calls remain primary. Before filling any curated gap, the builder privately compares overlapping rsID calls across both sources. It requires at least 95% concordance across 1,000 overlaps; otherwise the dashboard marks the Ancestry layer **Review needed** and keeps it separate. The public repository and Cloudflare preview never receive either source.
 
 ## 🔬 Annotation toolkit
 
