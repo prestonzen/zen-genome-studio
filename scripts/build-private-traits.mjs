@@ -12,9 +12,10 @@ for (let index = 2; index < process.argv.length; index += 2) {
 const vcfPath = args.get('--vcf')
 const outputPath = args.get('--output')
 const ancestryPath = args.get('--ancestry')
+const ancestryRelation = (args.get('--ancestry-relation') || 'unknown').toLowerCase()
 
 if (!vcfPath || !outputPath) {
-  console.error('Usage: node build-private-traits.mjs --vcf <file.vcf.gz> --output <trait-report.json> [--ancestry <AncestryDNA.zip>]')
+  console.error('Usage: node build-private-traits.mjs --vcf <file.vcf.gz> --output <trait-report.json> [--ancestry <AncestryDNA.zip>] [--ancestry-relation <self|mother|father|parent>]')
   process.exit(1)
 }
 
@@ -120,6 +121,9 @@ async function compareSources() {
   if (!ancestryReady) return null
   let overlap = 0
   let matching = 0
+  let ibs0 = 0
+  let ibs1 = 0
+  let ibs2 = 0
   const complement = { A: 'T', T: 'A', C: 'G', G: 'C' }
   const vcfInput = fs.createReadStream(vcfPath)
   const vcfSource = vcfPath.endsWith('.gz') ? vcfInput.pipe(zlib.createGunzip()) : vcfInput
@@ -129,6 +133,9 @@ async function compareSources() {
     if (!line || line.startsWith('#')) continue
     const fields = line.split('\t')
     if (fields.length < 10 || (fields[6] !== 'PASS' && fields[6] !== '.')) continue
+    const chromosome = fields[0].replace(/^chr/i, '')
+    if (!/^([1-9]|1\d|2[0-2])$/.test(chromosome)) continue
+    if (fields[3].length !== 1 || fields[4].length !== 1 || fields[4].includes(',')) continue
     const rsid = fields[2].split(';').find((id) => ancestryAll.has(id))
     if (!rsid) continue
     const formatKeys = fields[8].split(':')
@@ -142,16 +149,41 @@ async function compareSources() {
     const ancestryGenotype = ancestryAll.get(rsid)
     const directMatch = sameGenotype(genotype, ancestryGenotype)
     const complementedMatch = sameGenotype(genotype, ancestryGenotype.map((allele) => complement[allele]))
+    const remaining = [...ancestryGenotype]
+    let sharedAlleles = 0
+    for (const allele of genotype) {
+      const matchIndex = remaining.indexOf(allele)
+      if (matchIndex >= 0) {
+        sharedAlleles++
+        remaining.splice(matchIndex, 1)
+      }
+    }
     overlap++
     if (directMatch || complementedMatch) matching++
+    if (sharedAlleles === 0) ibs0++
+    else if (sharedAlleles === 1) ibs1++
+    else ibs2++
   }
 
   const concordancePercent = overlap ? Math.round((matching / overlap) * 10_000) / 100 : 0
+  const ibs0Percent = overlap ? Math.round((ibs0 / overlap) * 100_000) / 1_000 : 0
+  const ibs1Percent = overlap ? Math.round((ibs1 / overlap) * 10_000) / 100 : 0
+  const ibs2Percent = overlap ? Math.round((ibs2 / overlap) * 10_000) / 100 : 0
+  const declaredParent = ['mother', 'father', 'parent', 'child'].includes(ancestryRelation)
+  const samePerson = overlap >= 1_000 && concordancePercent >= 95
+  const parentChildPattern = overlap >= 1_000 && ibs0Percent <= 0.5 && ibs1Percent >= 30 && ibs1Percent <= 65
   return {
-    status: overlap >= 1_000 && concordancePercent >= 95 ? 'compatible' : 'review',
+    status: samePerson ? 'compatible' : declaredParent && parentChildPattern ? 'family-compatible' : 'review',
+    relationship: ancestryRelation,
     overlap,
     matching,
     concordancePercent,
+    ibs0,
+    ibs1,
+    ibs2,
+    ibs0Percent,
+    ibs1Percent,
+    ibs2Percent,
   }
 }
 
@@ -340,11 +372,15 @@ const report = {
   reportLabel: 'Private trait report',
   sourceNote: ancestryUsable
     ? `Derived locally from the WGS VCF plus ${ancestryObserved.size} curated AncestryDNA markers`
+    : sourceComparison?.status === 'family-compatible'
+      ? 'WGS trait report with a separate AncestryDNA family comparison'
     : ancestryReady
       ? 'Derived from the WGS VCF; AncestryDNA is connected but kept separate after source validation'
       : 'Derived locally from a variant-only whole-genome VCF',
   caveat: ancestryUsable
     ? `WGS remains primary. AncestryDNA build 37 calls fill only curated rsID gaps; ${crossChecked.length} markers were cross-checked and ${discordant} differed. Confirm important results against aligned reads. Traits are tendencies, not guarantees.`
+    : sourceComparison?.status === 'family-compatible'
+      ? `The separate AncestryDNA file shows a parent-child sharing pattern: ${(100 - sourceComparison.ibs0Percent).toFixed(3)}% of ${sourceComparison.overlap.toLocaleString('en-US')} overlapping autosomal calls share at least one allele. A parent's genotype cannot fill the child's missing calls, so it does not change the trait report.`
     : ancestryReady
       ? `AncestryDNA was not blended: ${sourceComparison.concordancePercent}% of ${sourceComparison.overlap.toLocaleString('en-US')} overlapping calls agreed. Confirm both files belong to the same person and sample before combining them. WGS remains primary.`
       : 'Absent sites are presumed reference because this VCF stores variants only. Confirm important calls against a gVCF or read data. Traits are tendencies, not guarantees.',

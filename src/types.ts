@@ -66,10 +66,17 @@ export type TraitReport = {
   caveat: string
   sourceValidation?: {
     ancestry: {
-      status: 'compatible' | 'review'
+      status: 'compatible' | 'family-compatible' | 'review'
+      relationship: string
       overlap: number
       matching: number
       concordancePercent: number
+      ibs0: number
+      ibs1: number
+      ibs2: number
+      ibs0Percent: number
+      ibs1Percent: number
+      ibs2Percent: number
     }
   }
   eyeProbabilities?: {

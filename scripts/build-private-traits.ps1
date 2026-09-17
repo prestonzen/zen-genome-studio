@@ -37,6 +37,9 @@ if ($settings.ANCESTRY_DNA_NAME) {
     $ancestryPath = Join-Path $settings.GENOME_DATA_DIR $settings.ANCESTRY_DNA_NAME
     if (Test-Path -LiteralPath $ancestryPath -PathType Leaf) {
         $nodeArgs += @('--ancestry', $ancestryPath)
+        if ($settings.ANCESTRY_DNA_RELATION) {
+            $nodeArgs += @('--ancestry-relation', $settings.ANCESTRY_DNA_RELATION)
+        }
     } else {
         Write-Warning 'The configured AncestryDNA source was not found; continuing with the WGS VCF only.'
     }

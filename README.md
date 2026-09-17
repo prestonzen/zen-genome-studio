@@ -110,6 +110,8 @@ Create `.env.local` from `.env.example` and set the private source directory and
 GENOME_DATA_DIR=C:\path\to\private-genome-data
 GENOME_VCF_NAME=sample.vcf.gz
 GENOME_READS_NAME=sample.fastq.genozip
+ANCESTRY_DNA_NAME=AncestryDNA.zip
+ANCESTRY_DNA_RELATION=self
 OPENCRAVAT_URL=http://127.0.0.1:8080
 ```
 
@@ -211,7 +213,7 @@ After inspection, keep the export beside the other private genome files and set 
 powershell -ExecutionPolicy Bypass -File .\scripts\build-private-traits.ps1
 ```
 
-WGS calls remain primary. Before filling any curated gap, the builder privately compares overlapping rsID calls across both sources. It requires at least 95% concordance across 1,000 overlaps; otherwise the dashboard marks the Ancestry layer **Review needed** and keeps it separate. The public repository and Cloudflare preview never receive either source.
+WGS calls remain primary. Before filling any curated gap, the builder privately compares overlapping rsID calls across both sources. A `self` sample requires at least 95% concordance across 1,000 overlaps. A declared `mother`, `father`, or `parent` sample is checked for the expected parent-child shared-allele pattern and is always kept separate from the child's trait calculations. Unrecognized patterns are marked **Review needed**. The public repository and Cloudflare preview never receive either source.
 
 ## 🔬 Annotation toolkit
 
