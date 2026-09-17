@@ -94,7 +94,7 @@ npm install
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-opencravat.ps1
 ```
 
-The setup creates an isolated Python environment inside Ubuntu and installs OpenCRAVAT, its GRCh38 base data, and a practical starter collection of clinical, population, pharmacogenomic, trait, prediction, and reporting modules.
+The setup creates an isolated Python environment inside Ubuntu and installs OpenCRAVAT, its GRCh38 base data, and a practical starter collection of clinical, pharmacogenomic, trait, visualization, and reporting modules.
 
 > [!NOTE]
 > Base reference data alone is about 2 GB. The complete module set needs additional disk space and can take a while to download.
@@ -126,6 +126,17 @@ Stop both services with:
 powershell -ExecutionPolicy Bypass -File .\scripts\stop-all.ps1
 ```
 
+### 5. Build a fast private preview
+
+Before committing to a multi-hour whole-genome job, create a local preview containing up to 100 real variants from each chromosome or contig:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-private-preview.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\start-preview-viewer.ps1
+```
+
+The derived VCF and SQLite result stay under the private Ubuntu home directory, outside this repository. The original VCF is read-only and unchanged. OpenCRAVAT displays the annotated preview at `http://127.0.0.1:8080/`.
+
 ## 🔬 Annotation toolkit
 
 The starter setup installs modules selected for a broad first exploration:
@@ -133,11 +144,11 @@ The starter setup installs modules selected for a broad first exploration:
 | Lens | Included modules |
 | --- | --- |
 | Clinical evidence | ClinVar, ClinVar ACMG |
-| Population context | dbSNP, gnomAD 4 |
 | Traits and studies | GWAS Catalog |
 | Pharmacogenomics | PharmGKB |
-| Prediction | REVEL, SIFT, PolyPhen-2 |
 | Exports | Excel and TSV reporters |
+
+Large optional databases are deliberately not installed by default. Current store sizes are substantial: dbSNP is about 53 GB, gnomAD 4 about 23 GB, SIFT about 22 GB, PolyPhen-2 about 8 GB, and REVEL about 7 GB. Add one only when a specific analysis needs it.
 
 OpenCRAVAT modules and source databases can change over time. Always inspect the evidence, genome assembly, database version, and original source before interpreting a variant.
 

@@ -20,13 +20,8 @@ oc module install-base
 modules=(
   clinvar
   clinvar_acmg
-  dbsnp
-  gnomad4
   gwas_catalog
   pharmgkb
-  revel
-  sift
-  polyphen2
   excelreporter
   tsvreporter
   wgclinvar
@@ -34,12 +29,9 @@ modules=(
   wgpharmgkb
 )
 
-echo "Installing the starter clinical, population, trait, and reporting modules..."
-for module in "${modules[@]}"; do
-  oc module install "$module"
-done
+echo "Installing the starter clinical, trait, pharmacogenomic, and reporting modules..."
+oc module install -y "${modules[@]}"
 
 echo
 echo "OpenCRAVAT is ready. Version:"
 oc version
-
