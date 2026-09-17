@@ -7,7 +7,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "preview:cloudflare": "npm run build && wrangler pages dev",
+    "deploy:cloudflare": "npm run build && wrangler pages deploy"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -21,12 +23,13 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@cloudflare/workers-types": "latest",
     "eslint": "latest",
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
     "typescript": "latest",
-    "typescript-eslint": "latest"
+    "typescript-eslint": "latest",
+    "wrangler": "latest"
   }
 }
-

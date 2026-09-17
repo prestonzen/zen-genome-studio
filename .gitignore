@@ -22,3 +22,5 @@ jobs/
 *.db
 screenshots/
 .runtime/
+.wrangler/
+.dev.vars*

@@ -34,7 +34,7 @@ function localBridge(): Plugin {
           opencravat = false
         }
 
-        response.end(JSON.stringify({ source, opencravat, openCravatUrl }))
+        response.end(JSON.stringify({ mode: 'local', source, opencravat, openCravatUrl }))
       })
     },
   }

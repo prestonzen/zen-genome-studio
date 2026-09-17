@@ -1,6 +1,6 @@
 # Preston Genome Studio
 
-A private, local visual wrapper for exploring Preston's whole-genome OpenCRAVAT workflow. The wrapper is designed for clean screen recordings while keeping raw genome files and personal results outside the social-media project.
+A privacy-first visual wrapper for Preston's whole-genome OpenCRAVAT workflow. It runs locally with the real analysis status or on Cloudflare Pages as a safe visual preview. Raw genome files and personal results always stay outside the social-media project.
 
 ![Genome Studio concept](docs/design/genome-studio-concept.png)
 
@@ -11,6 +11,7 @@ A private, local visual wrapper for exploring Preston's whole-genome OpenCRAVAT 
 - The browser receives only a generic source name, availability, and file size.
 - Genome files, result databases, jobs, recordings, logs, and local settings are blocked by `.gitignore`.
 - The GitHub workflow fails if a genomic or analysis-data file is ever added to the repository.
+- The Cloudflare build has no genome-upload endpoint and reports only that no private source is present.
 
 ## First-time setup
 
@@ -64,6 +65,25 @@ For TikTok, crop the browser to the central landscape plus the right recording r
 ## GitHub
 
 This folder is ready to publish as a code-only repository. Create the remote as **private** first, review `git status`, and never force-add ignored files. No GitHub remote is created automatically.
+
+## Cloudflare Pages
+
+Cloudflare hosts the recording-friendly interface and one tiny status Function. It does **not** run OpenCRAVAT and does not receive the VCF.
+
+Preview the Cloudflare build locally:
+
+```powershell
+npm run preview:cloudflare
+```
+
+Deploy after signing in to Wrangler:
+
+```powershell
+npx wrangler login
+npm run deploy:cloudflare
+```
+
+The deployment creates a `pages.dev` site. Pages sites are public unless access controls are added, so deploy only the code-only cloud preview. See [CLOUDFLARE.md](CLOUDFLARE.md) for the architecture, platform limits, and the later private-server migration path.
 
 ## Development
 

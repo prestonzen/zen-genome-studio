@@ -8,7 +8,8 @@ import { Topbar } from './components/Topbar'
 import { useLocalStatus } from './hooks/useLocalStatus'
 import type { LandscapeTab, ViewName } from './types'
 
-function formatBytes(bytes?: number) {
+function formatSource(bytes?: number, cloudMode = false) {
+  if (cloudMode) return 'No genome uploaded to Cloudflare'
   if (!bytes) return 'Source check pending'
   return `${Math.round(bytes / 1_000_000)} MB • source protected`
 }
@@ -25,6 +26,7 @@ function App() {
   const recorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const cloudMode = status.mode === 'cloud'
 
   useEffect(() => {
     if (!recording) return
@@ -83,6 +85,10 @@ function App() {
   }
 
   function openAnalysis() {
+    if (cloudMode) {
+      setNotice('This cloud preview never receives genome files. Connect your private analysis server when it is ready.')
+      return
+    }
     if (!status.opencravat) {
       setNotice('OpenCRAVAT is not running yet. Ubuntu setup is the next step.')
       return
@@ -93,18 +99,18 @@ function App() {
   return (
     <div className={recordSafe ? 'app-shell safe' : 'app-shell'}>
       <Sidebar active={view} onChange={changeView} />
-      <Topbar connected={status.opencravat} sourceReady={status.source.present} openCravatUrl={status.openCravatUrl} />
+      <Topbar connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} onOpenAnalysis={openAnalysis} />
 
       <main className="workspace">
         <section className="page-intro">
           <div>
             <h1>Whole genome overview</h1>
-            <p>A private, local view of your variant analysis</p>
+            <p>{cloudMode ? 'A privacy-safe cloud preview with no genome data' : 'A private, local view of your variant analysis'}</p>
           </div>
           <div className="source-actions">
             <div className="source-file">
               <FileText size={28} strokeWidth={1.6} />
-              <span><strong>Whole-genome VCF</strong><small>{formatBytes(status.source.bytes)}</small></span>
+              <span><strong>{cloudMode ? 'Private genome source' : 'Whole-genome VCF'}</strong><small>{formatSource(status.source.bytes, cloudMode)}</small></span>
               <ShieldCheck className="source-shield" size={17} />
             </div>
             <button className="primary-command" type="button" onClick={openAnalysis}>
@@ -124,16 +130,17 @@ function App() {
               selected={selectedChromosome}
               onSelect={setSelectedChromosome}
             />
-            <ActivityStrip connected={status.opencravat} sourceReady={status.source.present} />
+            <ActivityStrip connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} />
           </div>
           <InsightRail
             connected={status.opencravat}
             sourceReady={status.source.present}
+            mode={status.mode}
             checking={checking}
             recordSafe={recordSafe}
             recording={recording}
             elapsed={elapsed}
-            openCravatUrl={status.openCravatUrl}
+            onOpenAnalysis={openAnalysis}
             onRefresh={refresh}
             onToggleSafe={() => setRecordSafe((current) => !current)}
             onStartRecording={startRecording}
@@ -148,4 +155,3 @@ function App() {
 }
 
 export default App
-

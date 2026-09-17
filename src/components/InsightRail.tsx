@@ -1,13 +1,15 @@
 import { Check, ExternalLink, EyeOff, MonitorUp, Radio, RefreshCw, ShieldCheck, Square } from 'lucide-react'
+import type { DeploymentMode } from '../types'
 
 type InsightRailProps = {
   connected: boolean
   sourceReady: boolean
+  mode: DeploymentMode
   checking: boolean
   recordSafe: boolean
   recording: boolean
   elapsed: number
-  openCravatUrl: string
+  onOpenAnalysis: () => void
   onRefresh: () => void
   onToggleSafe: () => void
   onStartRecording: () => void
@@ -24,16 +26,18 @@ export function InsightRail(props: InsightRailProps) {
   const {
     connected,
     sourceReady,
+    mode,
     checking,
     recordSafe,
     recording,
     elapsed,
-    openCravatUrl,
+    onOpenAnalysis,
     onRefresh,
     onToggleSafe,
     onStartRecording,
     onStopRecording,
   } = props
+  const cloudMode = mode === 'cloud'
 
   return (
     <aside className="insight-rail">
@@ -46,15 +50,15 @@ export function InsightRail(props: InsightRailProps) {
         </div>
         <div className="check-row">
           <span className={connected ? 'check-icon ok' : 'check-icon waiting'}>{connected ? <Check size={14} /> : <Radio size={12} />}</span>
-          <span>OpenCRAVAT</span><strong>{connected ? 'Ready' : 'Waiting'}</strong>
+          <span>OpenCRAVAT</span><strong>{connected ? 'Ready' : cloudMode ? 'Server needed' : 'Waiting'}</strong>
         </div>
         <div className="check-row">
-          <span className={sourceReady ? 'check-icon ok' : 'check-icon waiting'}>{sourceReady ? <Check size={14} /> : <Radio size={12} />}</span>
-          <span>VCF source</span><strong>{sourceReady ? 'Found' : 'Missing'}</strong>
+          <span className={sourceReady || cloudMode ? 'check-icon ok' : 'check-icon waiting'}>{sourceReady || cloudMode ? <Check size={14} /> : <Radio size={12} />}</span>
+          <span>VCF source</span><strong>{sourceReady ? 'Found' : cloudMode ? 'Not uploaded' : 'Missing'}</strong>
         </div>
         <div className="check-row">
           <span className="check-icon ok"><ShieldCheck size={14} /></span>
-          <span>Privacy boundary</span><strong>Local</strong>
+          <span>Privacy boundary</span><strong>{cloudMode ? 'UI only' : 'Local'}</strong>
         </div>
       </section>
 
@@ -93,14 +97,13 @@ export function InsightRail(props: InsightRailProps) {
 
       <section className="rail-section open-cravat">
         <h3>OpenCRAVAT</h3>
-        <p>Open the local analysis interface in a new tab.</p>
-        <button type="button" onClick={() => window.open(openCravatUrl, '_blank', 'noopener,noreferrer')}>
-          <ExternalLink size={16} /> Open OpenCRAVAT
+        <p>{cloudMode ? 'Connect a private analysis server when it is ready.' : 'Open the local analysis interface in a new tab.'}</p>
+        <button type="button" onClick={onOpenAnalysis}>
+          <ExternalLink size={16} /> {cloudMode ? 'Connect analysis server' : 'Open OpenCRAVAT'}
         </button>
       </section>
 
-      <div className="local-lock"><MonitorUp size={15} /> Nothing leaves this computer</div>
+      <div className="local-lock"><MonitorUp size={15} /> {cloudMode ? 'No genome data uploaded' : 'Nothing leaves this computer'}</div>
     </aside>
   )
 }
-
