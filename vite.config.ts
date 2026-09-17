@@ -11,6 +11,7 @@ function localBridge(): Plugin {
       const dataDir = env.GENOME_DATA_DIR
       const vcfName = env.GENOME_VCF_NAME
       const readsName = env.GENOME_READS_NAME
+      const ancestryName = env.ANCESTRY_DNA_NAME
       const openCravatUrl = env.OPENCRAVAT_URL || 'http://127.0.0.1:8080'
       const defaultReportRoot = process.env.LOCALAPPDATA
         ? path.join(process.env.LOCALAPPDATA, 'ZenGenomeStudio', 'private')
@@ -22,6 +23,7 @@ function localBridge(): Plugin {
 
         let source: { present: boolean; bytes?: number } = { present: false }
         let reads: { present: boolean; bytes?: number } = { present: false }
+        let ancestry: { present: boolean; bytes?: number } = { present: false }
         if (dataDir && vcfName) {
           const vcfPath = path.join(dataDir, vcfName)
           try {
@@ -42,6 +44,16 @@ function localBridge(): Plugin {
           }
         }
 
+        if (dataDir && ancestryName) {
+          const ancestryPath = path.join(dataDir, ancestryName)
+          try {
+            const stats = fs.statSync(ancestryPath)
+            ancestry = { present: stats.isFile(), bytes: stats.size }
+          } catch {
+            ancestry = { present: false }
+          }
+        }
+
         let opencravat: boolean
         try {
           const result = await fetch(openCravatUrl, { signal: AbortSignal.timeout(1200) })
@@ -50,7 +62,7 @@ function localBridge(): Plugin {
           opencravat = false
         }
 
-        response.end(JSON.stringify({ mode: 'local', source, reads, opencravat, openCravatUrl }))
+        response.end(JSON.stringify({ mode: 'local', source, reads, ancestry, opencravat, openCravatUrl }))
       })
 
       server.middlewares.use('/api/trait-report', (_request, response) => {

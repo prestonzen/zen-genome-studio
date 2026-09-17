@@ -20,7 +20,7 @@ function App() {
   const { status, checking, refresh } = useLocalStatus()
   const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
   const [view, setView] = useState<ViewName>('Discover')
-  const [tab, setTab] = useState<LandscapeTab>('Chromosomes')
+  const [tab, setTab] = useState<LandscapeTab>('Genome map')
   const [selectedChromosome, setSelectedChromosome] = useState('11')
   const [recordSafe, setRecordSafe] = useState(true)
   const [recording, setRecording] = useState(false)
@@ -45,7 +45,7 @@ function App() {
 
   function changeView(next: ViewName) {
     setView(next)
-    if (next === 'Overview') setTab('Chromosomes')
+    if (next === 'Overview') setTab('Genome map')
     if (next === 'Record') {
       window.setTimeout(() => document.querySelector('.record-controls')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0)
     } else {
@@ -140,6 +140,8 @@ function App() {
               onTabChange={setTab}
               selected={selectedChromosome}
               onSelect={setSelectedChromosome}
+              report={report}
+              status={status}
             />
             <ActivityStrip connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} />
           </div>

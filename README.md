@@ -166,6 +166,16 @@ The first consumer report deliberately stays small and explainable:
 
 Every result includes an evidence grade, marker count, plain-language explanation, and research source. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
 
+### 🧭 Interactive overview
+
+The Overview is a working explorer rather than a decorative chromosome plot:
+
+- **Genome map** - select a chromosome, then open a curated gene or region to see its biology, limitations, source, and related local trait result.
+- **Polygenic** - compare height, skin pigmentation, chronotype, and body-composition model readiness without inventing a personal score.
+- **Data layers** - inspect the separate roles of the whole-genome VCF, compressed reads, optional AncestryDNA microarray, and public PGS Catalog models.
+
+These layers remain separate until genome build, strand orientation, effect alleles, and missing coverage have been reconciled. AncestryDNA can confirm some overlapping rsIDs, while the WGS data remains the broader source.
+
 ### 🧭 Genome Atlas
 
 The **Genome Atlas** answers a different question: *what else could this dataset support?*
@@ -185,6 +195,14 @@ Check whether the private Genozip archive and local tools are ready without extr
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\check-read-pipeline.ps1
 ```
+
+An AncestryDNA raw-data export can add a second, independent microarray layer for overlapping markers. Inspect a `.txt` or original `.zip` locally without printing genotypes:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\inspect-ancestry-dna.ps1 -Path "C:\private\AncestryDNA.zip"
+```
+
+After inspection, keep the export beside the other private genome files and set `ANCESTRY_DNA_NAME` in `.env.local`. The public repository and Cloudflare preview never receive it.
 
 ## 🔬 Annotation toolkit
 

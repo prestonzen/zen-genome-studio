@@ -10,12 +10,16 @@ export type LocalStatus = {
     present: boolean
     bytes?: number
   }
+  ancestry: {
+    present: boolean
+    bytes?: number
+  }
   opencravat: boolean
   openCravatUrl: string
 }
 
 export type ViewName = 'Overview' | 'Discover' | 'Summary' | 'Record'
-export type LandscapeTab = 'Chromosomes' | 'Clinical' | 'Traits'
+export type LandscapeTab = 'Genome map' | 'Polygenic' | 'Data layers'
 
 export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance' | 'Curiosities'
 export type EvidenceLevel = 'Strong' | 'Moderate' | 'Exploratory'

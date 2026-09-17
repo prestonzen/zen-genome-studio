@@ -4,6 +4,7 @@ export const onRequestGet: PagesFunction = async () => {
       mode: 'cloud',
       source: { present: false },
       reads: { present: false },
+      ancestry: { present: false },
       opencravat: false,
       openCravatUrl: '',
     },

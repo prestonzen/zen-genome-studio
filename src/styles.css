@@ -2789,3 +2789,634 @@ button:focus-visible {
     display: none !important;
   }
 }
+
+/* Container-safe result visualizations */
+.eye-feature {
+  container-type: inline-size;
+}
+
+.eye-score,
+.probability-list,
+.probability-row,
+.probability-track {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.probability-track i {
+  max-width: 100%;
+}
+
+@container (max-width: 470px) {
+  .eye-result-grid {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 16px;
+  }
+
+  .eye-result-grid > img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 5px;
+  }
+}
+
+/* Interactive overview */
+.interactive-landscape {
+  min-height: 640px;
+  color: #edf6f8;
+  background: rgba(7, 19, 26, .72);
+  border: 1px solid rgba(116, 188, 209, .22);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  backdrop-filter: blur(18px) saturate(120%);
+}
+
+.interactive-landscape .landscape-header {
+  height: 70px;
+}
+
+.interactive-landscape .landscape-header > div {
+  min-width: 0;
+}
+
+.interactive-landscape .landscape-header p {
+  margin: 6px 0 0;
+  color: #8299a4;
+  font-size: 10px;
+}
+
+.interactive-landscape .preview-label {
+  border-color: rgba(69, 223, 160, .36);
+  color: var(--green);
+}
+
+.interactive-landscape .tab-list {
+  border-bottom-color: rgba(116, 188, 209, .18);
+}
+
+.interactive-landscape .tab-list button {
+  color: #8097a2;
+}
+
+.interactive-landscape .tab-list button:hover,
+.interactive-landscape .tab-list button.active {
+  color: var(--cyan);
+}
+
+.interactive-landscape .tab-list button.active {
+  border-bottom-color: var(--cyan);
+}
+
+.interactive-landscape .landscape-legend {
+  color: #7d949e;
+}
+
+.interactive-landscape .chromosome {
+  position: relative;
+  color: #9db0b8;
+}
+
+.interactive-landscape .chromosome > small {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  min-width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #001217;
+  background: var(--green);
+  font: 600 7px/1 'IBM Plex Mono', monospace;
+}
+
+.interactive-landscape .chromosome:hover .chromosome-plot,
+.interactive-landscape .chromosome.active .chromosome-plot {
+  box-shadow: 0 0 0 2px var(--cyan), 0 0 18px rgba(49, 201, 237, .2);
+}
+
+.genome-detail-grid {
+  min-width: 0;
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 276px;
+  gap: 12px;
+}
+
+.interactive-landscape .detail-track,
+.region-detail,
+.polygenic-view,
+.data-layers-view {
+  border-color: rgba(116, 188, 209, .2);
+  color: #eaf4f7;
+  background: rgba(11, 28, 36, .68);
+}
+
+.interactive-landscape .detail-track {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.interactive-landscape .detail-heading span,
+.interactive-landscape .detail-heading small,
+.interactive-landscape .axis {
+  color: #8197a1;
+}
+
+.interactive-landscape .track-bands {
+  border-color: #58717c;
+}
+
+.interactive-landscape .track-bands .dark { background: #263944; }
+.interactive-landscape .track-bands .mid { background: #78909a; }
+.interactive-landscape .track-bands .light { background: #c4d1d5; }
+.interactive-landscape .axis { border-top-color: rgba(116, 188, 209, .18); }
+
+.gene-marker {
+  position: absolute;
+  top: 4px;
+  z-index: 3;
+  border: 0;
+  padding: 0;
+  color: #8ca1ab;
+  background: transparent;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+
+.gene-marker i {
+  width: 2px;
+  height: 48px;
+  margin: 18px auto 0;
+  display: block;
+  background: var(--coral);
+  transition: width 150ms ease, box-shadow 150ms ease;
+}
+
+.gene-marker span {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  font: 500 7px/1 'IBM Plex Mono', monospace;
+  white-space: nowrap;
+}
+
+.gene-marker:hover,
+.gene-marker.active {
+  color: var(--cyan);
+}
+
+.gene-marker.active i {
+  width: 4px;
+  background: var(--cyan);
+  box-shadow: 0 0 12px rgba(49, 201, 237, .7);
+}
+
+.region-selector {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.region-selector button {
+  height: 30px;
+  border: 1px solid rgba(116, 188, 209, .2);
+  border-radius: 4px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9bafb7;
+  background: rgba(4, 14, 20, .45);
+  cursor: pointer;
+  font: 500 8px/1 'IBM Plex Mono', monospace;
+}
+
+.region-selector button:hover,
+.region-selector button.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.no-regions {
+  min-height: 58px;
+  border-top: 1px solid rgba(116, 188, 209, .16);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #8096a0;
+  font-size: 9px;
+}
+
+.region-detail {
+  min-width: 0;
+  border: 1px solid rgba(116, 188, 209, .2);
+  border-radius: var(--radius);
+  padding: 17px;
+}
+
+.region-detail > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.region-detail > header span,
+.polygenic-detail > span,
+.layer-detail > span {
+  color: var(--green);
+  font: 500 8px/1 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+}
+
+.region-detail h3,
+.polygenic-detail h3,
+.layer-detail h3 {
+  margin: 7px 0 0;
+  font-size: 20px;
+}
+
+.region-detail header p {
+  margin: 4px 0 0;
+  color: #9aadb5;
+  font-size: 10px;
+}
+
+.region-detail header a {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(116, 188, 209, .25);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: var(--cyan);
+}
+
+.region-detail > p,
+.polygenic-detail > p,
+.layer-detail > p {
+  margin: 16px 0 0;
+  color: #9aadb5;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.region-interpretation,
+.polygenic-detail > div,
+.layer-detail > div {
+  margin-top: 16px;
+  border-top: 1px solid rgba(116, 188, 209, .16);
+  padding-top: 14px;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 9px;
+  color: var(--cyan);
+}
+
+.region-interpretation p,
+.polygenic-detail > div p,
+.layer-detail > div p {
+  margin: 0;
+  color: #8fa4ad;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.region-interpretation strong,
+.polygenic-detail > div strong,
+.layer-detail > div strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #dce8ec;
+  font-size: 9px;
+}
+
+.region-result {
+  margin-top: 16px;
+  border-left: 2px solid var(--green);
+  padding: 3px 0 3px 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.region-result span { color: #8298a2; font-size: 8px; text-transform: uppercase; }
+.region-result strong { color: #eff8f9; font-size: 11px; }
+.region-result small { color: #788e98; font: 400 7px/1.35 'IBM Plex Mono', monospace; }
+
+.region-detail.empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  color: #6f8792;
+}
+
+.region-detail.empty h3 { font-size: 13px; }
+.region-detail.empty p { margin: 8px 0 0; }
+
+.polygenic-view,
+.data-layers-view {
+  min-height: 488px;
+  border: 1px solid rgba(116, 188, 209, .2);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.polygenic-view > header,
+.data-layers-view > header {
+  border-bottom: 1px solid rgba(116, 188, 209, .16);
+  padding-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.polygenic-view > header > div,
+.data-layers-view > header > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--cyan);
+}
+
+.polygenic-view > header span,
+.data-layers-view > header span {
+  display: grid;
+  gap: 5px;
+}
+
+.polygenic-view > header strong,
+.data-layers-view > header strong { color: #eef7f9; font-size: 13px; }
+.polygenic-view > header small,
+.data-layers-view > header small { color: #8298a2; font-size: 9px; }
+.polygenic-view > header > p,
+.data-layers-view > header > p { max-width: 420px; margin: 0; color: #8298a2; font-size: 9px; line-height: 1.45; text-align: right; }
+
+.polygenic-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: minmax(280px, .82fr) minmax(0, 1.18fr);
+  gap: 18px;
+}
+
+.polygenic-list {
+  display: grid;
+  align-content: start;
+}
+
+.polygenic-list button {
+  min-height: 78px;
+  border: 0;
+  border-bottom: 1px solid rgba(116, 188, 209, .14);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(115px, 1fr) minmax(70px, .7fr) 78px 18px;
+  align-items: center;
+  gap: 10px;
+  color: #90a5ae;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.polygenic-list button:hover,
+.polygenic-list button.active { background: rgba(49, 201, 237, .05); }
+.polygenic-list button.active { box-shadow: inset 3px 0 var(--cyan); }
+.polygenic-list button > span { display: grid; gap: 5px; }
+.polygenic-list strong { color: #e7f1f4; font-size: 11px; }
+.polygenic-list small { color: #7f949e; font-size: 8px; }
+.polygenic-list button > i { height: 7px; overflow: hidden; background: rgba(112, 146, 159, .2); }
+.polygenic-list button > i b { display: block; height: 100%; background: var(--cyan); }
+.polygenic-list em { font-size: 8px; font-style: normal; text-align: right; }
+
+.polygenic-detail,
+.layer-detail {
+  min-width: 0;
+  border: 1px solid rgba(116, 188, 209, .18);
+  border-radius: 5px;
+  padding: 18px;
+  background: rgba(4, 14, 20, .35);
+}
+
+.polygenic-detail > b {
+  display: inline-block;
+  margin-top: 9px;
+  color: var(--cyan);
+  font-size: 9px;
+}
+
+.polygenic-detail ol {
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  list-style: none;
+}
+
+.polygenic-detail li {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #91a5ae;
+  font-size: 8px;
+}
+
+.polygenic-detail li i {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--green);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  font-style: normal;
+}
+
+.polygenic-detail > a {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--cyan);
+  font-size: 9px;
+}
+
+.data-layers-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(240px, .7fr);
+  grid-template-rows: auto 1fr;
+  gap: 16px 18px;
+}
+
+.data-layers-view > header { grid-column: 1 / -1; }
+
+.layer-stack {
+  display: grid;
+  align-content: start;
+}
+
+.layer-stack button {
+  min-height: 82px;
+  border: 0;
+  border-bottom: 1px solid rgba(116, 188, 209, .14);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 28px 26px minmax(0, 1fr) 100px 18px;
+  align-items: center;
+  gap: 10px;
+  color: #8298a2;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.layer-stack button:hover,
+.layer-stack button.active { background: rgba(49, 201, 237, .05); }
+.layer-stack button.active { box-shadow: inset 3px 0 var(--cyan); }
+.layer-index { color: #526a75; font: 500 8px/1 'IBM Plex Mono', monospace; }
+.layer-stack button > span:nth-child(3) { display: grid; gap: 5px; }
+.layer-stack strong { color: #e7f1f4; font-size: 10px; }
+.layer-stack small { color: #7e939d; font-size: 8px; line-height: 1.35; }
+.layer-stack em { display: flex; justify-content: flex-end; align-items: center; gap: 5px; color: var(--yellow); font-size: 8px; font-style: normal; text-align: right; }
+.layer-stack em.ready { color: var(--green); }
+
+.layer-detail {
+  align-self: start;
+}
+
+@media (max-width: 1120px) {
+  .genome-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .region-detail {
+    min-height: 220px;
+  }
+
+  .polygenic-grid,
+  .data-layers-view {
+    grid-template-columns: 1fr;
+  }
+
+  .data-layers-view > header {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .interactive-landscape .landscape-header {
+    height: auto;
+    min-height: 72px;
+    padding: 13px;
+  }
+
+  .interactive-landscape .landscape-header h2 { font-size: 16px; }
+  .interactive-landscape .landscape-header p { max-width: 240px; }
+
+  .interactive-landscape .tab-list {
+    padding: 0 8px;
+    gap: 2px;
+  }
+
+  .interactive-landscape .tab-list button {
+    min-width: 0;
+    flex: 1;
+    padding: 0 5px;
+    font-size: 9px;
+  }
+
+  .interactive-landscape .landscape-content {
+    padding: 10px;
+  }
+
+  .interactive-landscape .landscape-legend {
+    height: auto;
+    min-height: 32px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .interactive-landscape .chromosome-grid {
+    grid-template-columns: repeat(24, minmax(10px, 1fr));
+  }
+
+  .interactive-landscape .chromosome {
+    padding-inline: 0;
+  }
+
+  .interactive-landscape .chromosome > small {
+    display: none;
+  }
+
+  .interactive-landscape .detail-heading {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .interactive-landscape .detail-heading small {
+    grid-column: 1 / -1;
+  }
+
+  .gene-marker span {
+    display: none;
+  }
+
+  .polygenic-view,
+  .data-layers-view {
+    padding: 12px;
+  }
+
+  .polygenic-view > header,
+  .data-layers-view > header {
+    display: grid;
+  }
+
+  .polygenic-view > header > p,
+  .data-layers-view > header > p {
+    text-align: left;
+  }
+
+  .polygenic-list button {
+    grid-template-columns: minmax(100px, 1fr) 72px 18px;
+  }
+
+  .polygenic-list button > i {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .polygenic-list em {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .polygenic-list button > svg {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .polygenic-detail ol {
+    grid-template-columns: 1fr;
+  }
+
+  .layer-stack button {
+    grid-template-columns: 24px 22px minmax(0, 1fr) 18px;
+  }
+
+  .layer-stack em {
+    grid-column: 3 / -1;
+    justify-content: flex-start;
+  }
+
+  .layer-stack button > svg:last-child {
+    grid-column: 4;
+    grid-row: 1;
+  }
+}
