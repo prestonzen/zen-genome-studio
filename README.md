@@ -64,7 +64,9 @@ For TikTok, crop the browser to the central landscape plus the right recording r
 
 ## GitHub
 
-This folder is ready to publish as a code-only repository. Create the remote as **private** first, review `git status`, and never force-add ignored files. No GitHub remote is created automatically.
+The public repository is [`prestonzen/zen-genome-studio`](https://github.com/prestonzen/zen-genome-studio). It contains application code and a reference preview only. It never contains Preston's genome or generated analysis results.
+
+Before every push, review `git status` and never force-add ignored files. Contributions are welcome under the [MIT License](LICENSE), but issues and pull requests must not include genomic data, personal findings, or private file paths. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ## Cloudflare Pages
 
