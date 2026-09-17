@@ -1,0 +1,27 @@
+name: Private-safe build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: Reject genomic data in the repository
+        shell: bash
+        run: |
+          if git ls-files | grep -Ei '\.(vcf|vcf\.gz|bcf|bam|bai|cram|crai|fastq|fastq\.gz|genozip|sqlite|db)$'; then
+            echo 'Genomic or analysis data must never be committed.'
+            exit 1
+          fi
+

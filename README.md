@@ -1,0 +1,80 @@
+# Preston Genome Studio
+
+A private, local visual wrapper for exploring Preston's whole-genome OpenCRAVAT workflow. The wrapper is designed for clean screen recordings while keeping raw genome files and personal results outside the social-media project.
+
+![Genome Studio concept](docs/design/genome-studio-concept.png)
+
+## Privacy boundary
+
+- Raw genome files stay in the private Desktop DNA folder configured in `.env.local`.
+- The private path exists only in `.env.local`, which Git ignores.
+- The browser receives only a generic source name, availability, and file size.
+- Genome files, result databases, jobs, recordings, logs, and local settings are blocked by `.gitignore`.
+- The GitHub workflow fails if a genomic or analysis-data file is ever added to the repository.
+
+## First-time setup
+
+1. Open **Ubuntu** from the Start menu once.
+2. Let it finish installing, then create the requested Linux username and password.
+3. Open PowerShell in this project folder.
+4. Run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-opencravat.ps1
+```
+
+The setup uses an isolated Python environment in Ubuntu. It installs OpenCRAVAT, the GRCh38 base reference data, ClinVar, ClinVar ACMG, dbSNP, gnomAD 4, GWAS Catalog, PharmGKB, REVEL, SIFT, PolyPhen-2, Excel/TSV reporting, and matching viewer widgets. The base install alone downloads about 2 GB; the full module set needs additional disk space and time.
+
+## Start and stop
+
+Start both the recording wrapper and OpenCRAVAT:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-all.ps1
+```
+
+Open these local pages:
+
+- Recording wrapper: `http://127.0.0.1:4173/`
+- OpenCRAVAT: `http://127.0.0.1:8080/`
+
+Stop both local services:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-all.ps1
+```
+
+## VCF workflow
+
+In OpenCRAVAT, choose the private source file directly from the Desktop folder. Select the correct genome assembly from the VCF header before starting the job. A full whole-genome annotation can run for hours and create large result files, so keep job output in OpenCRAVAT's private Ubuntu area rather than this repository.
+
+The wrapper's **Clinical** and **Traits** views intentionally stay empty until real annotated results are available. The chromosome screen is labeled **Reference preview** and **Visual demo** so it cannot be mistaken for a medical finding.
+
+## Screen-recording shot list
+
+1. Open on **Whole genome overview** with **Record-safe mode** on.
+2. Hold for two seconds on the chromosome landscape and select chromosomes 11, 17, and X.
+3. Show the VCF status as **Found** without opening File Explorer.
+4. Switch to **Clinical**, then **Traits**, and explain that personal results are never simulated.
+5. Open OpenCRAVAT in a new tab and show the Jobs/Store interface without revealing local paths.
+6. Return to the wrapper, start the recording timer, and end on **Nothing leaves this computer**.
+
+For TikTok, crop the browser to the central landscape plus the right recording rail. Keep the OpenCRAVAT disclaimer visible when discussing variants: research and education only, not a diagnosis.
+
+## GitHub
+
+This folder is ready to publish as a code-only repository. Create the remote as **private** first, review `git status`, and never force-add ignored files. No GitHub remote is created automatically.
+
+## Development
+
+```powershell
+npm install
+npm run dev
+```
+
+Checks:
+
+```powershell
+npm run lint
+npm run build
+```
