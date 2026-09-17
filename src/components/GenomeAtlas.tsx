@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Activity,
   ArrowRight,
@@ -5,6 +6,7 @@ import {
   ChevronRight,
   Dna,
   Eye,
+  ExternalLink,
   FlaskConical,
   Gauge,
   LockKeyhole,
@@ -32,8 +34,9 @@ function AtlasIcon({ id }: { id: string }) {
   if (id.includes('hair')) return <Sparkles size={19} />
   if (id.includes('skin') || id.includes('sneeze')) return <Sun size={19} />
   if (id.includes('height')) return <Ruler size={19} />
-  if (id.includes('chronotype')) return <Moon size={19} />
-  if (id.includes('pharmcat')) return <Pill size={19} />
+  if (id.includes('chronotype') || id.includes('sleep')) return <Moon size={19} />
+  if (id.includes('pharmcat') || id.includes('nicotine')) return <Pill size={19} />
+  if (id.includes('heart') || id.includes('grip')) return <Activity size={19} />
   if (id.includes('blood-group') || id.includes('blood-traits') || id.includes('hla')) return <ShieldPlus size={19} />
   if (id.includes('kinship') || id.includes('roh')) return <Users size={19} />
   if (id.includes('taste') || id.includes('lactose') || id.includes('cilantro')) return <Utensils size={19} />
@@ -61,6 +64,7 @@ function statusClass(status: AtlasItem['status']) {
 }
 
 export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps) {
+  const [expandedId, setExpandedId] = useState<string | null>('eye-atlas')
   return (
     <div className="atlas-layout">
       <section className="atlas-table" aria-label="Genome analysis atlas">
@@ -69,6 +73,7 @@ export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps
           <section className={`atlas-group atlas-${group.id}`} key={group.id}>
             <header><div><AtlasIcon id={`${group.id}-atlas`} /><strong>{group.title}</strong></div><p>{group.description}</p></header>
             {group.items.map((item) => {
+              const expanded = expandedId === item.id
               const content = (
                 <>
                   <span className="atlas-name"><AtlasIcon id={item.id} /><strong>{item.title}</strong></span>
@@ -77,9 +82,14 @@ export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps
                   <span className="atlas-scale">{item.scale}<ChevronRight size={16} /></span>
                 </>
               )
-              return item.sourceUrl
-                ? <a className="atlas-row" key={item.id} href={item.sourceUrl} target="_blank" rel="noreferrer">{content}</a>
-                : <div className="atlas-row" key={item.id}>{content}</div>
+              return <div className={expanded ? 'atlas-entry expanded' : 'atlas-entry'} key={item.id}>
+                <button className="atlas-row" type="button" onClick={() => setExpandedId(expanded ? null : item.id)} aria-expanded={expanded}>{content}</button>
+                {expanded && <div className="atlas-expanded">
+                  <div><strong>What this means</strong><p>{item.detail}</p></div>
+                  <dl><div><dt>Current state</dt><dd>{item.status}</dd></div><div><dt>Evidence scale</dt><dd>{item.scale}</dd></div><div><dt>What you get</dt><dd>{item.result}</dd></div></dl>
+                  {item.sourceUrl ? <a href={item.sourceUrl} target="_blank" rel="noreferrer">Open scientific source <ExternalLink size={14} /></a> : <span>No single responsible individual predictor is available.</span>}
+                </div>}
+              </div>
             })}
           </section>
         ))}

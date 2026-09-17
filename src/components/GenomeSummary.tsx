@@ -1,11 +1,11 @@
 import { ArrowRight, Check, Dna, FileCheck2, FlaskConical, Layers3, Microscope, ScanSearch } from 'lucide-react'
-import type { LandscapeTab, LocalStatus, TraitReport } from '../types'
+import type { LocalStatus, TraitReport } from '../types'
 import { TermTip } from './TermTip'
 
 type GenomeSummaryProps = {
   status: LocalStatus
   report: TraitReport
-  onOpenExplorer: (tab: LandscapeTab) => void
+  onOpenPrivacy: () => void
 }
 
 const depths = [
@@ -27,7 +27,7 @@ const depths = [
   },
 ]
 
-export function GenomeSummary({ status, report, onOpenExplorer }: GenomeSummaryProps) {
+export function GenomeSummary({ status, report, onOpenPrivacy }: GenomeSummaryProps) {
   const directTraits = report.traits.filter((trait) => /^\d+ marker(?:s)? directly observed/.test(trait.callNote) || /^[1-9]\d* directly observed/.test(trait.callNote)).length
   return (
     <section className="genome-summary">
@@ -53,7 +53,7 @@ export function GenomeSummary({ status, report, onOpenExplorer }: GenomeSummaryP
       <div className="summary-next">
         <div><Microscope size={20} /><p><strong>What FASTQ adds next</strong>Confirm uncertain calls, inspect complete-gene coverage, and run structural-variant, HLA, repeat, mitochondrial, and ancestry pipelines.</p></div>
         <div><Layers3 size={20} /><p><strong>What it does not add automatically</strong>A raw read is not an interpretation. Each result still needs a caller, a model, quality checks, and a comparison population.</p></div>
-        <button type="button" onClick={() => onOpenExplorer('Data layers')}>Open tool check <ArrowRight size={16} /></button>
+        <button type="button" onClick={onOpenPrivacy}>Open local tools <ArrowRight size={16} /></button>
       </div>
 
       <footer>

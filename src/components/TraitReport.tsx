@@ -36,8 +36,8 @@ type SummaryViewProps = TraitReportProps & {
   clinicalReport: ClinicalReport
   clinicalLoading: boolean
   onRefreshClinical: () => void
-  recordSafe: boolean
-  onToggleSafe: () => void
+  privacyMode: boolean
+  onTogglePrivacy: () => void
 }
 
 const categories: TraitCategory[] = ['Appearance', 'Senses & food', 'Performance', 'Curiosities']
@@ -275,18 +275,18 @@ function ClinicalFindingRow({ finding }: { finding: ClinicalFinding }) {
   )
 }
 
-function ClinicalReportPanel({ clinicalReport, clinicalLoading, onRefreshClinical, recordSafe, onToggleSafe }: Pick<SummaryViewProps, 'clinicalReport' | 'clinicalLoading' | 'onRefreshClinical' | 'recordSafe' | 'onToggleSafe'>) {
+function ClinicalReportPanel({ clinicalReport, clinicalLoading, onRefreshClinical, privacyMode, onTogglePrivacy }: Pick<SummaryViewProps, 'clinicalReport' | 'clinicalLoading' | 'onRefreshClinical' | 'privacyMode' | 'onTogglePrivacy'>) {
   const ready = clinicalReport.state === 'ready'
   return (
     <section className="clinical-report-panel" aria-labelledby="clinical-report-title">
       <header>
         <div><span className="section-kicker">CLINICIAN-REVIEWED</span><h2 id="clinical-report-title"><HeartPulse size={20} /> Clinical report</h2><p>Imported from the interpreted WGS report. These labels are displayed as reported and are not recalculated by Zen Genome Studio.</p></div>
-        <button className="privacy-command" type="button" onClick={onToggleSafe}>{recordSafe ? <Eye size={16} /> : <EyeOff size={16} />}{recordSafe ? 'Reveal privately' : 'Hide for recording'}</button>
+        <button className="privacy-command" type="button" onClick={onTogglePrivacy}>{privacyMode ? <Eye size={16} /> : <EyeOff size={16} />}{privacyMode ? 'Reveal private details' : 'Turn on privacy mode'}</button>
       </header>
       {!ready ? (
         <div className="clinical-empty"><ShieldCheck size={22} /><span><strong>{clinicalReport.mode === 'cloud' ? 'Private by design' : 'Clinical summary not connected'}</strong><small>{clinicalReport.sourceNote}</small></span>{clinicalReport.mode === 'local' && <button type="button" onClick={onRefreshClinical}><RefreshCw size={15} className={clinicalLoading ? 'spin' : ''} /> Check again</button>}</div>
-      ) : recordSafe ? (
-        <div className="clinical-privacy-lock"><ShieldCheck size={26} /><div><strong>Clinical details hidden</strong><p>Record-safe mode conceals diagnoses, genes, variants, and finding counts. Reveal only when you are off camera and in private.</p></div></div>
+      ) : privacyMode ? (
+        <div className="clinical-privacy-lock"><ShieldCheck size={26} /><div><strong>Clinical details hidden</strong><p>Privacy mode conceals diagnoses, genes, variants, and finding counts. Reveal only when you are ready to view personal health information.</p></div></div>
       ) : (
         <div className="clinical-report-content">
           <div className="clinical-source-line"><span><FileText size={16} /> {clinicalReport.reportLabel}</span><span>{clinicalReport.reportDate ? `Report date ${clinicalReport.reportDate}` : 'Local report'}</span><b>Not recalculated</b></div>
@@ -309,7 +309,7 @@ function ClinicalReportPanel({ clinicalReport, clinicalLoading, onRefreshClinica
   )
 }
 
-export function SummaryView({ report, loading, onRefresh, onNavigate, clinicalReport, clinicalLoading, onRefreshClinical, recordSafe, onToggleSafe }: SummaryViewProps) {
+export function SummaryView({ report, loading, onRefresh, onNavigate, clinicalReport, clinicalLoading, onRefreshClinical, privacyMode, onTogglePrivacy }: SummaryViewProps) {
   const grouped = categories.map((category) => ({ category, traits: report.traits.filter((trait) => trait.category === category) }))
   return (
     <main className="workspace consumer-workspace">
@@ -317,7 +317,7 @@ export function SummaryView({ report, loading, onRefresh, onNavigate, clinicalRe
       <ReportSourceStrip report={report} />
       <div className="summary-grid">
         <section className="summary-paper">
-          <ClinicalReportPanel clinicalReport={clinicalReport} clinicalLoading={clinicalLoading} onRefreshClinical={onRefreshClinical} recordSafe={recordSafe} onToggleSafe={onToggleSafe} />
+          <ClinicalReportPanel clinicalReport={clinicalReport} clinicalLoading={clinicalLoading} onRefreshClinical={onRefreshClinical} privacyMode={privacyMode} onTogglePrivacy={onTogglePrivacy} />
           {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
             <>
             <header><h2>The short version</h2><p>{report.caveat}</p></header>

@@ -1,29 +1,36 @@
-export const chromosomes = [
-  { name: '1', length: 248_956_422 },
-  { name: '2', length: 242_193_529 },
-  { name: '3', length: 198_295_559 },
-  { name: '4', length: 190_214_555 },
-  { name: '5', length: 181_538_259 },
-  { name: '6', length: 170_805_979 },
-  { name: '7', length: 159_345_973 },
-  { name: '8', length: 145_138_636 },
-  { name: '9', length: 138_394_717 },
-  { name: '10', length: 133_797_422 },
-  { name: '11', length: 135_086_622 },
-  { name: '12', length: 133_275_309 },
-  { name: '13', length: 114_364_328 },
-  { name: '14', length: 107_043_718 },
-  { name: '15', length: 101_991_189 },
-  { name: '16', length: 90_338_345 },
-  { name: '17', length: 83_257_441 },
-  { name: '18', length: 80_373_285 },
-  { name: '19', length: 58_617_616 },
-  { name: '20', length: 64_444_167 },
-  { name: '21', length: 46_709_983 },
-  { name: '22', length: 50_818_468 },
-  { name: 'X', length: 156_040_895 },
-  { name: 'Y', length: 57_227_415 },
-] as const
+export type ChromosomeInfo = {
+  name: string
+  length: number
+  title: string
+  summary: string
+  examples: string[]
+}
+
+export const chromosomes: ChromosomeInfo[] = [
+  { name: '1', length: 248_956_422, title: 'The largest chromosome', summary: 'Chromosome 1 spans a wide range of biology, so there is no single job for it. It includes genes involved in development, nerves, heart rhythm, cholesterol, and hair structure.', examples: ['TCHH: hair form', 'PCSK9: cholesterol biology', 'MTHFR: folate metabolism'] },
+  { name: '2', length: 242_193_529, title: 'Digestion and development', summary: 'Chromosome 2 includes regulatory regions affecting adult lactose digestion as well as genes involved in development, DNA repair, and lipid transport.', examples: ['MCM6 / LCT: lactose persistence', 'APOB: lipid transport', 'MSH2: DNA repair'] },
+  { name: '3', length: 198_295_559, title: 'Cell growth and immune signalling', summary: 'Chromosome 3 contains genes with roles in cell growth, DNA repair, kidney biology, and immune-cell movement.', examples: ['MLH1: DNA repair', 'CCR5: immune-cell entry', 'VHL: oxygen sensing'] },
+  { name: '4', length: 190_214_555, title: 'Nervous system and metabolism', summary: 'Chromosome 4 includes genes involved in brain signalling, muscle control, detoxification, and energy regulation.', examples: ['HTT: nerve-cell biology', 'UGT2B cluster: metabolism', 'FGFR3: bone growth'] },
+  { name: '5', length: 181_538_259, title: 'Growth and tissue maintenance', summary: 'Chromosome 5 carries genes important to growth, cell adhesion, immune signalling, and the maintenance of intestinal tissue.', examples: ['APC: cell growth control', 'TERT: chromosome-end maintenance', 'SLC6A3: dopamine transport'] },
+  { name: '6', length: 170_805_979, title: 'Immune recognition and pigmentation', summary: 'Chromosome 6 contains the HLA region, one of the most variable parts of the genome, plus pigmentation and iron-related genes.', examples: ['HLA region: immune recognition', 'IRF4: pigmentation', 'HFE: iron regulation'] },
+  { name: '7', length: 159_345_973, title: 'Taste, speech, and ion transport', summary: 'Chromosome 7 includes bitter-taste receptors and genes important to language development, mucus transport, and cell signalling.', examples: ['TAS2R38: bitter taste', 'CFTR: salt and water transport', 'FOXP2: speech and language development'] },
+  { name: '8', length: 145_138_636, title: 'Lipid handling and cell regulation', summary: 'Chromosome 8 contains regions involved in lipid metabolism, cell growth, immune response, and nervous-system development.', examples: ['LPL: triglyceride metabolism', 'MYC: cell growth regulation', 'WRN: DNA maintenance'] },
+  { name: '9', length: 138_394_717, title: 'Blood groups and cell control', summary: 'Chromosome 9 includes the ABO blood-group gene along with genes involved in cell-cycle control and nerve development.', examples: ['ABO: blood group', 'TSC1: cell growth signalling', 'NOTCH1: cell development'] },
+  { name: '10', length: 133_797_422, title: 'Drug metabolism and signalling', summary: 'Chromosome 10 includes a major drug-metabolism gene cluster and genes involved in development, nerve signalling, and tumour suppression.', examples: ['CYP2C cluster: medication metabolism', 'RET: cell signalling', 'PTEN: growth control'] },
+  { name: '11', length: 135_086_622, title: 'Senses, muscle, and blood', summary: 'Chromosome 11 includes olfactory receptors, muscle-performance biology, insulin, and the beta-globin region.', examples: ['OR6A2 region: cilantro perception', 'ACTN3: fast-twitch muscle protein', 'HBB: beta-globin'] },
+  { name: '12', length: 133_275_309, title: 'Alcohol metabolism and vitamin signalling', summary: 'Chromosome 12 includes a large-effect alcohol-metabolism gene and genes involved in vitamin D signalling and amino-acid processing.', examples: ['ALDH2: acetaldehyde clearance', 'VDR: vitamin D receptor', 'PAH: phenylalanine metabolism'] },
+  { name: '13', length: 114_364_328, title: 'DNA repair and eye development', summary: 'Chromosome 13 contains important DNA-repair and cell-cycle genes as well as regions involved in eye and nervous-system development.', examples: ['BRCA2: DNA repair', 'RB1: cell-cycle control', 'EDNRB: neural-crest development'] },
+  { name: '14', length: 107_043_718, title: 'Antibodies and protein protection', summary: 'Chromosome 14 contains the immunoglobulin heavy-chain region used to build antibodies and genes involved in lung and liver protein balance.', examples: ['IGH region: antibodies', 'SERPINA1: protein protection', 'PSEN1: nerve-cell processing'] },
+  { name: '15', length: 101_991_189, title: 'Eye colour and caffeine clearance', summary: 'Chromosome 15 contains the strongest common eye-colour region and genes involved in pigmentation and caffeine metabolism.', examples: ['HERC2 / OCA2: eye pigmentation', 'CYP1A2: caffeine clearance', 'SLC24A5: pigmentation'] },
+  { name: '16', length: 90_338_345, title: 'Pigmentation and everyday biology', summary: 'Chromosome 16 contains large-effect consumer-trait genes alongside blood, kidney, and metabolic genes.', examples: ['ABCC11: earwax type', 'MC1R: hair pigmentation', 'HBA1 / HBA2: alpha-globin'] },
+  { name: '17', length: 83_257_441, title: 'DNA repair and nerve proteins', summary: 'Chromosome 17 is gene-dense and includes major cell-protection, DNA-repair, and nervous-system genes.', examples: ['BRCA1: DNA repair', 'TP53: damaged-cell response', 'MAPT: nerve-cell structure'] },
+  { name: '18', length: 80_373_285, title: 'Cell survival and development', summary: 'Chromosome 18 includes genes involved in cell survival, digestive development, and tissue signalling.', examples: ['BCL2: cell survival', 'SMAD4: growth signalling', 'NPC1: cholesterol transport'] },
+  { name: '19', length: 58_617_616, title: 'A compact, gene-dense chromosome', summary: 'Chromosome 19 is small but packed with genes, including major lipid, immune, and medication-response loci.', examples: ['APOE: lipid transport', 'LDLR: cholesterol uptake', 'CYP2A6: nicotine metabolism'] },
+  { name: '20', length: 64_444_167, title: 'Pigmentation and metabolic signalling', summary: 'Chromosome 20 includes genes involved in pigmentation balance, immune function, glucose signalling, and brain development.', examples: ['ASIP: pigmentation balance', 'ADA: immune metabolism', 'GNAS: hormone signalling'] },
+  { name: '21', length: 46_709_983, title: 'The smallest autosome', summary: 'Chromosome 21 contains genes involved in brain development, oxidative stress, and protein processing. Having an extra copy causes Down syndrome.', examples: ['APP: protein processing', 'SOD1: oxidative stress', 'RUNX1: blood-cell development'] },
+  { name: '22', length: 50_818_468, title: 'Caffeine response and nerve signalling', summary: 'Chromosome 22 includes genes involved in adenosine response, neurotransmitter processing, immune receptors, and development.', examples: ['ADORA2A: caffeine sensitivity', 'COMT: neurotransmitter processing', 'BCR: cell signalling'] },
+  { name: 'X', length: 156_040_895, title: 'The X chromosome', summary: 'The X chromosome carries many genes unrelated to sex as well as genes affecting reproduction. In people with two X chromosomes, much of one copy is usually inactivated in each cell.', examples: ['F8: blood clotting', 'DMD: muscle structure', 'OPN1LW: colour vision'] },
+  { name: 'Y', length: 57_227_415, title: 'The Y chromosome', summary: 'The Y chromosome contains genes involved in typical male sex development and sperm production. Its inherited pattern can also trace a direct paternal lineage.', examples: ['SRY: sex development', 'AZF regions: sperm production', 'Y haplogroup: paternal lineage'] },
+]
 
 export const demoMarkers = [8, 13, 23, 31, 42, 56, 64, 67, 78, 88] as const
-

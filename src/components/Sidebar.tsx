@@ -1,4 +1,4 @@
-import { CircleDot, Compass, FileText, Globe2, LayoutDashboard } from 'lucide-react'
+import { Compass, FileText, Globe2, LayoutDashboard, ShieldCheck } from 'lucide-react'
 import type { ViewName } from '../types'
 
 const items = [
@@ -6,7 +6,7 @@ const items = [
   { name: 'Discover' as const, icon: Compass },
   { name: 'Ancestry' as const, icon: Globe2 },
   { name: 'Summary' as const, icon: FileText },
-  { name: 'Record' as const, icon: CircleDot },
+  { name: 'Privacy' as const, icon: ShieldCheck },
 ]
 
 type SidebarProps = {

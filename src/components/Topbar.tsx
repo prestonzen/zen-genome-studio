@@ -1,4 +1,4 @@
-import { CircleHelp, ExternalLink, Settings } from 'lucide-react'
+import { ExternalLink, ShieldCheck } from 'lucide-react'
 import type { DeploymentMode } from '../types'
 
 type TopbarProps = {
@@ -20,14 +20,9 @@ export function Topbar({ connected, sourceReady, mode, onOpenAnalysis }: TopbarP
       <div className="top-actions">
         <button type="button" onClick={onOpenAnalysis}>
           <ExternalLink size={16} />
-          <span>{cloudMode ? 'Analysis server' : 'Open in new tab'}</span>
+          <span>{cloudMode ? 'Private analysis server' : 'Variant explorer'}</span>
         </button>
-        <button className="icon-button" type="button" title="Settings" aria-label="Settings">
-          <Settings size={18} />
-        </button>
-        <button className="icon-button" type="button" title="Help" aria-label="Help">
-          <CircleHelp size={18} />
-        </button>
+        <span className="top-privacy"><ShieldCheck size={15} /> Local summaries only</span>
       </div>
     </header>
   )

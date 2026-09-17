@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, FileText, Play, ShieldCheck } from 'lucide-react'
-import { ActivityStrip } from './components/ActivityStrip'
+import { useEffect, useState } from 'react'
+import { FileText, ShieldCheck } from 'lucide-react'
 import { AncestryView } from './components/AncestryView'
 import { ChromosomeLandscape } from './components/ChromosomeLandscape'
 import { GenomeSummary } from './components/GenomeSummary'
-import { InsightRail } from './components/InsightRail'
+import { PrivacyView } from './components/PrivacyView'
 import { Sidebar } from './components/Sidebar'
 import { Topbar } from './components/Topbar'
 import { DiscoverView, SummaryView } from './components/TraitReport'
@@ -25,23 +24,12 @@ function App() {
   const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
   const { clinicalReport, clinicalLoading, refreshClinicalReport } = useClinicalReport()
   const { ancestryReport, ancestryLoading, refreshAncestryReport } = useAncestryReport()
-  const [view, setView] = useState<ViewName>('Discover')
+  const [view, setView] = useState<ViewName>('Overview')
   const [tab, setTab] = useState<LandscapeTab>('Genome map')
   const [selectedChromosome, setSelectedChromosome] = useState('11')
-  const [recordSafe, setRecordSafe] = useState(true)
-  const [recording, setRecording] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
+  const [privacyMode, setPrivacyMode] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
-  const recorderRef = useRef<MediaRecorder | null>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const chunksRef = useRef<Blob[]>([])
   const cloudMode = status.mode === 'cloud'
-
-  useEffect(() => {
-    if (!recording) return
-    const timer = window.setInterval(() => setElapsed((current) => current + 1), 1000)
-    return () => window.clearInterval(timer)
-  }, [recording])
 
   useEffect(() => {
     if (!notice) return
@@ -52,48 +40,7 @@ function App() {
   function changeView(next: ViewName) {
     setView(next)
     if (next === 'Overview') setTab('Genome map')
-    if (next === 'Record') {
-      window.setTimeout(() => document.querySelector('.record-controls')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0)
-    } else {
-      window.scrollTo({ top: 0, behavior: 'auto' })
-    }
-  }
-
-  async function startRecording() {
-    if (!navigator.mediaDevices?.getDisplayMedia) {
-      setNotice('Screen recording is not supported in this browser.')
-      return
-    }
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
-      const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' })
-      streamRef.current = stream
-      recorderRef.current = recorder
-      chunksRef.current = []
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data)
-      }
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' })
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = `zen-genome-studio-${new Date().toISOString().slice(0, 19).replaceAll(':', '-')}.webm`
-        link.click()
-        window.setTimeout(() => URL.revokeObjectURL(link.href), 1000)
-        streamRef.current?.getTracks().forEach((track) => track.stop())
-        setRecording(false)
-      }
-      stream.getVideoTracks()[0].onended = () => recorder.state !== 'inactive' && recorder.stop()
-      recorder.start(1000)
-      setElapsed(0)
-      setRecording(true)
-    } catch {
-      setNotice('Recording was cancelled. Nothing was saved.')
-    }
-  }
-
-  function stopRecording() {
-    if (recorderRef.current?.state !== 'inactive') recorderRef.current?.stop()
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   function openAnalysis() {
@@ -102,28 +49,21 @@ function App() {
       return
     }
     if (!status.opencravat) {
-      setNotice('OpenCRAVAT is not running yet. Ubuntu setup is the next step.')
+      setNotice('The technical variant explorer is offline. Open Privacy to check the local analysis services.')
       return
     }
     window.open(status.openCravatUrl, '_blank', 'noopener,noreferrer')
   }
 
-  function openOverviewToolCheck(nextTab: LandscapeTab) {
-    setTab(nextTab)
-    window.setTimeout(() => {
-      document.querySelector('.interactive-landscape')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 0)
-  }
-
   return (
-    <div className={recordSafe ? 'app-shell safe' : 'app-shell'}>
+    <div className={privacyMode ? 'app-shell safe' : 'app-shell'}>
       <Sidebar active={view} onChange={changeView} />
       <Topbar connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} onOpenAnalysis={openAnalysis} />
 
       {view === 'Discover' ? (
         <DiscoverView report={report} status={status} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
       ) : view === 'Ancestry' ? (
-        <AncestryView report={ancestryReport} loading={ancestryLoading} recordSafe={recordSafe} onRefresh={refreshAncestryReport} onToggleSafe={() => setRecordSafe((current) => !current)} />
+        <AncestryView report={ancestryReport} loading={ancestryLoading} privacyMode={privacyMode} onRefresh={refreshAncestryReport} onTogglePrivacy={() => setPrivacyMode((current) => !current)} />
       ) : view === 'Summary' ? (
         <SummaryView
           report={report}
@@ -133,8 +73,18 @@ function App() {
           clinicalReport={clinicalReport}
           clinicalLoading={clinicalLoading}
           onRefreshClinical={refreshClinicalReport}
-          recordSafe={recordSafe}
-          onToggleSafe={() => setRecordSafe((current) => !current)}
+          privacyMode={privacyMode}
+          onTogglePrivacy={() => setPrivacyMode((current) => !current)}
+        />
+      ) : view === 'Privacy' ? (
+        <PrivacyView
+          status={status}
+          checking={checking}
+          privacyMode={privacyMode}
+          onRefresh={refresh}
+          onTogglePrivacy={() => setPrivacyMode((current) => !current)}
+          onOpenAnalysis={openAnalysis}
+          onNotice={setNotice}
         />
       ) : (
       <main className="workspace">
@@ -149,42 +99,20 @@ function App() {
               <span><strong>{cloudMode ? 'Private genome source' : 'Whole-genome VCF'}</strong><small>{formatSource(status.source.bytes, cloudMode)}</small></span>
               <ShieldCheck className="source-shield" size={17} />
             </div>
-            <button className="primary-command" type="button" onClick={openAnalysis}>
-              <ExternalLink size={18} /> Open variant explorer
-            </button>
-            <button className="secondary-command" type="button" onClick={openAnalysis}>
-              <Play size={18} /> Start analysis
-            </button>
           </div>
         </section>
 
-        <div className="dashboard-grid">
+        <div className="dashboard-grid overview-grid">
           <div className="main-column">
-            <GenomeSummary status={status} report={report} onOpenExplorer={openOverviewToolCheck} />
+            <GenomeSummary status={status} report={report} onOpenPrivacy={() => changeView('Privacy')} />
             <ChromosomeLandscape
               activeTab={tab}
               onTabChange={setTab}
               selected={selectedChromosome}
               onSelect={setSelectedChromosome}
               report={report}
-              status={status}
             />
-            <ActivityStrip connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} />
           </div>
-          <InsightRail
-            connected={status.opencravat}
-            sourceReady={status.source.present}
-            mode={status.mode}
-            checking={checking}
-            recordSafe={recordSafe}
-            recording={recording}
-            elapsed={elapsed}
-            onOpenAnalysis={openAnalysis}
-            onRefresh={refresh}
-            onToggleSafe={() => setRecordSafe((current) => !current)}
-            onStartRecording={startRecording}
-            onStopRecording={stopRecording}
-          />
         </div>
       </main>
       )}

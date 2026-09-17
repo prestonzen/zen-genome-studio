@@ -18,8 +18,44 @@ export type LocalStatus = {
   openCravatUrl: string
 }
 
-export type ViewName = 'Overview' | 'Discover' | 'Ancestry' | 'Summary' | 'Record'
-export type LandscapeTab = 'Genome map' | 'Polygenic' | 'Data layers'
+export type ViewName = 'Overview' | 'Discover' | 'Ancestry' | 'Summary' | 'Privacy'
+export type LandscapeTab = 'Genome map' | 'Polygenic'
+
+export type PipelineStatus = {
+  mode: DeploymentMode
+  available: boolean
+  distribution?: string
+  user?: string
+  tools: {
+    archive: boolean
+    aligner: boolean
+    variants: boolean
+    polygenic: boolean
+  }
+  note: string
+}
+
+export type PgsResult = {
+  state: 'ready' | 'missing' | 'error'
+  mode: DeploymentMode
+  modelId: string
+  trait: string
+  generatedAt?: string
+  modelVariants: number
+  positionedVariants?: number
+  matchedVariants: number
+  coveragePercent: number
+  weightCoveragePercent: number
+  weightedScore?: number
+  effectAlleles?: number
+  passCalls?: number
+  filteredCalls?: number
+  incompatibleCalls?: number
+  interpretation: string
+  nextStep: string
+  sourceNote: string
+  error?: string
+}
 
 export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance' | 'Curiosities'
 export type EvidenceLevel = 'Strong' | 'Moderate' | 'Exploratory'

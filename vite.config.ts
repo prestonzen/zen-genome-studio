@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync, spawn } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { heightPgsModel } from './src/data/pgsCatalog.ts'
@@ -24,6 +24,9 @@ function localBridge(): Plugin {
       const pgsDir = path.join(defaultReportRoot, 'pgs-catalog')
       const pgsPath = path.join(pgsDir, heightPgsModel.fileName)
       const pgsMetadataPath = path.join(pgsDir, `${heightPgsModel.id}.json`)
+      const pgsResultPath = path.join(defaultReportRoot, 'pgs-height-result.json')
+      const pgsScriptPath = path.join(process.cwd(), 'scripts', 'build-private-pgs.mjs')
+      const toolSetupScriptPath = path.join(process.cwd(), 'scripts', 'setup-analysis-tools.sh')
 
       function pgsState(note?: string) {
         let installed: boolean
@@ -38,6 +41,18 @@ function localBridge(): Plugin {
           installed = false
         }
         return { mode: 'local', installed, bytes, installedAt, model: heightPgsModel, note }
+      }
+
+      function pgsResultState() {
+        try {
+          return { ...JSON.parse(fs.readFileSync(pgsResultPath, 'utf8')), state: 'ready', mode: 'local' }
+        } catch {
+          return {
+            state: 'missing', mode: 'local', modelId: heightPgsModel.id, trait: 'Standing height',
+            modelVariants: heightPgsModel.variants, matchedVariants: 0, coveragePercent: 0, weightCoveragePercent: 0,
+            interpretation: 'No personal calculation has been run.', nextStep: 'Calculate against the private VCF.', sourceNote: 'No result yet.',
+          }
+        }
       }
 
       server.middlewares.use('/api/local-status', async (_request, response) => {
@@ -92,16 +107,45 @@ function localBridge(): Plugin {
         response.setHeader('Cache-Control', 'no-store')
         const tools = { archive: false, aligner: false, variants: false, polygenic: false }
         try {
-          const script = 'for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done; exit 0'
-          const output = execFileSync('wsl.exe', ['bash', '-lc', script], { encoding: 'utf8', timeout: 8000 })
-          const found = new Set(output.split(/\r?\n/).filter(Boolean))
+          const script = '. /etc/os-release; printf "__DISTRO__=%s\\n" "$NAME"; printf "__USER__=%s\\n" "$(id -un)"; for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done; exit 0'
+          const output = execFileSync('wsl.exe', ['-d', 'Ubuntu', '-e', 'bash', '-lc', script], { encoding: 'utf8', timeout: 8000 })
+          const lines = output.split(/\r?\n/).filter(Boolean)
+          const found = new Set(lines)
           tools.archive = found.has('genocat') || found.has('genounzip')
           tools.aligner = found.has('bwa-mem2') || found.has('minimap2')
           tools.variants = found.has('samtools') && found.has('bcftools')
           tools.polygenic = found.has('nextflow')
-          response.end(JSON.stringify({ mode: 'local', available: true, tools, note: 'Checked inside the local Ubuntu environment.' }))
+          const readyCount = Object.values(tools).filter(Boolean).length
+          const distribution = lines.find((line) => line.startsWith('__DISTRO__='))?.split('=')[1] || 'Ubuntu'
+          const user = lines.find((line) => line.startsWith('__USER__='))?.split('=')[1]
+          const note = readyCount === 4 ? 'Ubuntu and all optional analysis toolkits are ready.' : `Ubuntu is working. ${readyCount} of 4 optional deep-analysis toolkits are installed.`
+          response.end(JSON.stringify({ mode: 'local', available: true, distribution, user, tools, note }))
         } catch {
           response.end(JSON.stringify({ mode: 'local', available: false, tools, note: 'Ubuntu could not be checked yet.' }))
+        }
+      })
+
+      server.middlewares.use('/api/open-tool-setup', (request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        if (request.method !== 'POST') {
+          response.statusCode = 405
+          response.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+        if (request.headers['x-zen-local'] !== '1') {
+          response.statusCode = 403
+          response.end(JSON.stringify({ error: 'Local request confirmation is required.' }))
+          return
+        }
+        try {
+          const linuxScriptPath = execFileSync('wsl.exe', ['-d', 'Ubuntu', '-e', 'wslpath', '-a', toolSetupScriptPath], { encoding: 'utf8', timeout: 5000 }).trim()
+          const child = spawn('wt.exe', ['-w', '0', 'new-tab', '--title', 'Zen Genome Tools', 'wsl.exe', '-d', 'Ubuntu', '--', 'bash', linuxScriptPath], { detached: true, stdio: 'ignore', windowsHide: false })
+          child.unref()
+          response.end(JSON.stringify({ launched: true }))
+        } catch (error) {
+          response.statusCode = 500
+          response.end(JSON.stringify({ error: error instanceof Error ? error.message : 'Setup could not be opened.' }))
         }
       })
 
@@ -115,6 +159,11 @@ function localBridge(): Plugin {
         if (request.method !== 'POST') {
           response.statusCode = 405
           response.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+        if (request.headers['x-zen-local'] !== '1') {
+          response.statusCode = 403
+          response.end(JSON.stringify({ ...pgsState(), error: 'Local request confirmation is required.' }))
           return
         }
 
@@ -134,6 +183,40 @@ function localBridge(): Plugin {
         } catch (error) {
           response.statusCode = 502
           response.end(JSON.stringify({ ...pgsState(), error: error instanceof Error ? error.message : 'The model could not be downloaded.' }))
+        }
+      })
+
+      server.middlewares.use('/api/pgs-result', async (request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        if (request.method === 'GET') {
+          response.end(JSON.stringify(pgsResultState()))
+          return
+        }
+        if (request.method !== 'POST') {
+          response.statusCode = 405
+          response.end(JSON.stringify({ error: 'Method not allowed' }))
+          return
+        }
+        if (request.headers['x-zen-local'] !== '1') {
+          response.statusCode = 403
+          response.end(JSON.stringify({ ...pgsResultState(), state: 'error', error: 'Local request confirmation is required.' }))
+          return
+        }
+        if (!dataDir || !vcfName || !fs.existsSync(pgsPath)) {
+          response.statusCode = 400
+          response.end(JSON.stringify({ ...pgsResultState(), state: 'error', error: 'The private VCF and PGS model must both be available.' }))
+          return
+        }
+        const vcfPath = path.join(dataDir, vcfName)
+        try {
+          await new Promise<void>((resolve, reject) => {
+            execFile(process.execPath, [pgsScriptPath, '--vcf', vcfPath, '--score', pgsPath, '--output', pgsResultPath], { timeout: 180_000, windowsHide: true }, (error) => error ? reject(error) : resolve())
+          })
+          response.end(JSON.stringify(pgsResultState()))
+        } catch (error) {
+          response.statusCode = 500
+          response.end(JSON.stringify({ ...pgsResultState(), state: 'error', error: error instanceof Error ? error.message : 'The score could not be calculated.' }))
         }
       })
 

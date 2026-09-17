@@ -5,11 +5,11 @@
 ### Your genome stays private. Your discoveries get a stage.
 
 A privacy-first visual workspace for exploring everyday genetic traits, reviewing
-whole-genome VCFs with [OpenCRAVAT](https://opencravat.org/), and creating polished, record-ready walkthroughs.
+whole-genome VCFs with [OpenCRAVAT](https://opencravat.org/), and understanding what each analysis can actually support.
 
 [![Privacy-safe build](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/prestonzen/zen-genome-studio/actions/workflows/ci.yml) [![MIT License](https://img.shields.io/badge/license-MIT-20c997.svg)](LICENSE) [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/) [![OpenCRAVAT](https://img.shields.io/badge/analysis-OpenCRAVAT-f5c451)](https://opencravat.org/) [![Cloudflare Pages](https://img.shields.io/badge/demo-Cloudflare%20Pages-f38020?logo=cloudflare&logoColor=white)](CLOUDFLARE.md)
 
-**[Quick start](#-quick-start)** · **[How it works](#-how-it-works)** · **[Privacy](#-the-privacy-promise)** · **[Creator mode](#-built-for-the-camera)**
+**[Quick start](#-quick-start)** · **[How it works](#-how-it-works)** · **[Privacy](#-the-privacy-promise)** · **[Genome explorer](#-explore-with-context)**
 
 </div>
 
@@ -29,13 +29,13 @@ whole-genome VCFs with [OpenCRAVAT](https://opencravat.org/), and creating polis
 
 ## ✨ What is this?
 
-Zen Genome Studio adds a clear, screen-recording-friendly layer to a serious local genomics workflow. Its **Discover** and **Summary** views translate a small, curated set of non-medical markers into everyday language. OpenCRAVAT remains available for expert variant review.
+Zen Genome Studio adds a clear, non-technical layer to a serious local genomics workflow. Its **Discover** and **Summary** views translate curated consumer markers and clinician-reviewed findings into everyday language. OpenCRAVAT remains available for expert variant review.
 
 | Experience | What it does | Where your genome goes |
 | --- | --- | --- |
 | 🖥️ **Local studio** | Connects to a private VCF and launches OpenCRAVAT | Nowhere. It stays on your computer. |
 | ☁️ **Cloud preview** | Shows the visual interface with reference/demo content | No upload exists. No genome is received. |
-| 🎬 **Record-safe mode** | Hides sensitive details while you capture a walkthrough | Recording remains under your control. |
+| 🛡️ **Privacy mode** | Hides clinical findings, ancestry percentages, and family comparisons | The setting changes display only; raw files remain local. |
 
 The local interface never invents personal findings. Its private results appear only after a report has been generated from the configured VCF. The public cloud preview uses clearly labeled fictional examples and has no genome upload route.
 
@@ -48,7 +48,6 @@ flowchart LR
     TRAITS[Private trait report]:::engine
     OC[OpenCRAVAT]:::engine
     STUDIO[Zen Genome Studio]:::studio
-    VIDEO[Screen recording]:::output
     CF[Cloudflare preview]:::cloud
 
     VCF -->|read locally| WSL
@@ -56,7 +55,6 @@ flowchart LR
     TRAITS -->|plain-language results| STUDIO
     WSL --> OC
     OC -->|private results| STUDIO
-    STUDIO -->|record-safe view| VIDEO
     CF -. demo UI only .-> STUDIO
     VCF -. never uploaded .-> CF
 
@@ -64,7 +62,6 @@ flowchart LR
     classDef local fill:#13262b,stroke:#45d6c4,color:#fff
     classDef engine fill:#29240f,stroke:#f5c451,color:#fff
     classDef studio fill:#15273a,stroke:#57a8ff,color:#fff
-    classDef output fill:#251c34,stroke:#c58cff,color:#fff
     classDef cloud fill:#242424,stroke:#f38020,color:#fff
 ```
 
@@ -148,7 +145,7 @@ The **Summary** screen can display carrier and incidental findings from a compac
 
 1. Copy `docs/clinical-report.example.json` to `%LOCALAPPDATA%\ZenGenomeStudio\private\clinical-report.json`.
 2. Transcribe only findings already stated in a clinician-reviewed report. Do not infer or reclassify variants.
-3. Open **Summary** and turn off **Record-safe mode** only when you are in private.
+3. Open **Summary** and turn off **Privacy mode** only when you are ready to view personal findings.
 
 The PDF itself stays in your private medical folder. Neither the PDF nor the compact local summary belongs in Git.
 
@@ -198,9 +195,9 @@ The expanded **Genome Atlas** also inventories analyses that need the full model
 The Overview is a working explorer rather than a decorative chromosome plot:
 
 - **Genome map** - select a chromosome, then open a curated gene or region to see its biology, limitations, source, and related local trait result.
-- **Polygenic** - compare height, skin pigmentation, chronotype, and body-composition model readiness without inventing a personal score.
-- **Data layers** - inspect the separate roles of the whole-genome VCF, compressed reads, optional AncestryDNA microarray, and public PGS Catalog models.
-- **Analysis tools** - select **Open tool check**, then **Check tools** to test Ubuntu for the private read, alignment, variant, and polygenic toolchain without uploading or installing anything.
+- **Polygenic** - calculate the directly measurable part of the 62,419-variant height model and show genotype coverage, weight coverage, and the local weighted score.
+- **Privacy** - inspect the separate roles of the whole-genome VCF, compressed reads, optional AncestryDNA microarray, and public PGS Catalog models.
+- **Analysis tools** - open **Privacy** to see Ubuntu separately from its optional read, alignment, variant, and polygenic packages. **Install missing tools** opens an interactive Ubuntu setup window.
 
 These layers remain separate until genome build, strand orientation, effect alleles, and missing coverage have been reconciled. AncestryDNA can confirm some overlapping rsIDs, while the WGS data remains the broader source.
 
@@ -222,7 +219,9 @@ Height is intentionally shown as **No estimate yet**. The largest height map con
 
 Open **Overview → Polygenic → Height**, then select **Add locally**. The studio downloads the public GRCh38-harmonized scoring file for [PGS003895](https://www.pgscatalog.org/score/PGS003895/) into the private Zen Genome Studio app-data directory. This model contains 62,419 variants and has evaluation results across European, South Asian, African, and an East Asian-containing multi-ancestry sample.
 
-Adding the model is only step one. A personal result remains hidden until a callable genotype dataset has been created, effect alleles and missing coverage have been checked, and the raw weighted sum has been normalized against an appropriate population reference. The current variant-only WGS VCF is not sufficient because an absent row can mean either homozygous reference or simply unreported. The official `pgsc_calc` workflow also currently labels WGS input unsupported, so the studio does not invoke it blindly. The model download sends no genotype or genome file to PGS Catalog.
+After the model is present, **Calculate my score** matches its harmonized positions and effect alleles against the private VCF. The studio displays the exact partial weighted sum, directly observed variant count, genotype coverage, and represented model weight. That result stays in private app data and is never committed.
+
+The partial sum is not presented as a height percentile or centimetre estimate. A variant-only VCF omits many confidently normal-reference sites, and an absent row can also mean unreported. A responsible percentile still needs a callable genotype dataset plus an ancestry-matched reference distribution. The model download sends no genotype or genome file to PGS Catalog.
 
 Check whether the private Genozip archive and local tools are ready without extracting anything:
 
@@ -230,7 +229,15 @@ Check whether the private Genozip archive and local tools are ready without extr
 powershell -ExecutionPolicy Bypass -File .\scripts\check-read-pipeline.ps1
 ```
 
-The same check is available inside the app: **Overview → Open tool check → Check tools**. It translates tool names into jobs such as “Open compressed reads” and “Build and inspect variants.”
+The same check runs automatically under **Privacy → Deeper genome tools**. It translates tool names into jobs such as “Open compressed reads” and “Inspect and rebuild variants,” while correctly distinguishing a working Ubuntu install from missing optional packages.
+
+Install those optional Ubuntu packages from the app or run:
+
+```powershell
+npm run setup:tools
+```
+
+Ubuntu will ask for the password created during its first-run setup. Recheck the Privacy page when installation finishes.
 
 An AncestryDNA raw-data export can add a second, independent microarray layer for overlapping markers. Inspect a `.txt` or original `.zip` locally without printing genotypes:
 
@@ -261,29 +268,18 @@ Large optional databases are deliberately not installed by default. Current stor
 
 OpenCRAVAT modules and source databases can change over time. Always inspect the evidence, genome assembly, database version, and original source before interpreting a variant.
 
-## 🎬 Built for the camera
+## 🧭 Explore with context
 
-The studio is designed for vertical-video walkthroughs without turning private biology into accidental background footage.
-
-### Suggested shot list
-
-1. Open on **Whole genome overview** with **Record-safe mode** enabled.
-2. Hold on the chromosome landscape, then select chromosomes `11`, `17`, and `X`.
-3. Show the source status as **Found** without opening File Explorer.
-4. Open **Discover**, switch between **Appearance**, **Senses & food**, **Performance**, and **Curiosities**.
-5. Switch to **Genome Atlas** and pause on height: **No estimate yet - full calibrated polygenic score required**.
-6. Scroll to the read-level pipeline rows and show that the raw archive is detected locally.
-7. Select **View full summary** and show that the clinical section is concealed by **Record-safe mode**.
-8. Explain the Strong / Moderate / Exploratory evidence labels without revealing private clinical findings.
-9. Open OpenCRAVAT only when you want the technical variant view.
-10. Return to the studio, start the recording timer, and end on **Raw DNA stays on this device**.
-
-For a TikTok crop, keep the chromosome landscape and recording rail in frame. Review every frame before posting, especially tabs, notifications, browser history, filenames, and result details.
+- Select any chromosome for a plain-English overview and representative genes.
+- Open a curated gene marker to see what it can tell you, your current result when available, and the evidence source.
+- Use **Polygenic** for local score calculations with explicit genotype and weight coverage.
+- Use **Discover** for compact consumer traits and a broader atlas of analyses that are possible, pending, or not scientifically reliable.
+- Use **Privacy** to hide sensitive results, verify local data sources, and install optional Ubuntu analysis tools.
 
 ## 🛡️ The privacy promise
 
 - Raw VCF, BCF, BAM, CRAM, FASTQ, and Genozip files are blocked by `.gitignore`.
-- OpenCRAVAT SQLite databases, jobs, exports, logs, recordings, and local settings are blocked too.
+- OpenCRAVAT SQLite databases, jobs, exports, logs, and local settings are blocked too.
 - The browser receives only a generic source label, presence state, and file size.
 - The local trait endpoint exposes only the compact derived report, never the source path or full genotype list.
 - The clinical endpoint reads a compact summary from private app data; report PDFs and findings are never bundled into the site.
@@ -292,7 +288,7 @@ For a TikTok crop, keep the chromosome landscape and recording rail in frame. Re
 - GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
 - Public bug reports require a privacy confirmation before submission.
 
-Read the full [security and privacy policy](SECURITY.md) before recording or contributing.
+Read the full [security and privacy policy](SECURITY.md) before contributing or connecting new data sources.
 
 ## ☁️ Cloudflare preview
 
@@ -310,7 +306,7 @@ See [CLOUDFLARE.md](CLOUDFLARE.md) for platform boundaries and the future privat
 
 ```text
 zen-genome-studio/
-├── 🧬 src/                 React recording interface
+├── 🧬 src/                 React genome studio
 ├── ☁️ functions/           Privacy-safe Pages Function
 ├── 🎬 docs/design/         Public visual assets
 ├── 📖 docs/                Trait methodology and limitations
@@ -339,11 +335,11 @@ Contributions are welcome, but use fictional examples only. Never attach genomic
 ## 🛣️ Roadmap
 
 - [x] Privacy-safe local/cloud mode detection
-- [x] Record-safe creator interface
+- [x] Privacy mode for sensitive result concealment
 - [x] OpenCRAVAT setup and lifecycle scripts
 - [x] Cloudflare Pages preview architecture
 - [x] Local consumer-trait report with Discover and Summary views
-- [x] Private clinician-report layer with record-safe concealment
+- [x] Private clinician-report layer with privacy-mode concealment
 - [x] Private imported ancestry comparison and open-reference methodology
 - [x] Expanded WGS discovery atlas with reputable source links
 - [ ] Run the local 1000 Genomes PCA/admixture pipeline
@@ -351,7 +347,7 @@ Contributions are welcome, but use fictional examples only. Never attach genomic
 - [ ] Add read-level structural-variant, HLA, and repeat workflows
 - [ ] Import normalized OpenCRAVAT result summaries
 - [ ] Add an authenticated private-server connector
-- [ ] Publish reusable vertical-video scene presets
+- [ ] Add a reference-calibrated polygenic score workflow
 - [ ] Add provenance cards for evidence and database versions
 
 ## 📜 License
