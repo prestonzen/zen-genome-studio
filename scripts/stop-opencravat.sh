@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STATE_DIR="$HOME/.local/state/preston-genome-studio"
+STATE_DIR="$HOME/.local/state/zen-genome-studio"
 PID_FILE="$STATE_DIR/opencravat.pid"
 
 if [[ ! -f "$PID_FILE" ]]; then
@@ -18,4 +18,3 @@ else
 fi
 
 rm -f -- "$PID_FILE"
-

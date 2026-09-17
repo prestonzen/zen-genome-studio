@@ -15,13 +15,13 @@ type SidebarProps = {
 export function Sidebar({ active, onChange }: SidebarProps) {
   return (
     <aside className="sidebar">
-      <div className="brand" aria-label="Preston Genome Studio">
+      <div className="brand" aria-label="Zen Genome Studio">
         <span className="brand-mark" aria-hidden="true">
           <i />
           <i />
           <i />
         </span>
-        <span className="brand-name">PRESTON</span>
+        <span className="brand-name">ZEN</span>
         <span className="brand-product">GENOME STUDIO</span>
       </div>
 
@@ -43,4 +43,3 @@ export function Sidebar({ active, onChange }: SidebarProps) {
     </aside>
   )
 }
-

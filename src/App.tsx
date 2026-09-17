@@ -65,7 +65,7 @@ function App() {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = `preston-genome-studio-${new Date().toISOString().slice(0, 19).replaceAll(':', '-')}.webm`
+        link.download = `zen-genome-studio-${new Date().toISOString().slice(0, 19).replaceAll(':', '-')}.webm`
         link.click()
         window.setTimeout(() => URL.revokeObjectURL(link.href), 1000)
         streamRef.current?.getTracks().forEach((track) => track.stop())

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 VENV_DIR="$HOME/.venvs/opencravat"
-STATE_DIR="$HOME/.local/state/preston-genome-studio"
+STATE_DIR="$HOME/.local/state/zen-genome-studio"
 PID_FILE="$STATE_DIR/opencravat.pid"
 MODE="${1:-submit}"
 PREVIEW_DB="$HOME/.local/share/zen-genome-studio/private/jobs/genome-preview/genome-preview.sqlite"

@@ -4,7 +4,7 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $pidFile = Join-Path $projectRoot '.runtime\wrapper.pid'
 
 if (-not (Test-Path -LiteralPath $pidFile)) {
-    Write-Host 'Preston Genome Studio is not running.'
+    Write-Host 'Zen Genome Studio is not running.'
     exit 0
 }
 
@@ -13,10 +13,9 @@ $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
 
 if ($process -and $process.ProcessName -eq 'node') {
     Stop-Process -Id $processId
-    Write-Host 'Preston Genome Studio stopped.'
+    Write-Host 'Zen Genome Studio stopped.'
 } else {
     Write-Host 'The saved process was already stopped.'
 }
 
 Remove-Item -LiteralPath $pidFile -Force
-
