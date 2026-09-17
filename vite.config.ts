@@ -20,6 +20,7 @@ function localBridge(): Plugin {
         : path.join(process.env.HOME || process.cwd(), '.local', 'share', 'zen-genome-studio', 'private')
       const traitReportPath = env.TRAIT_REPORT_PATH || path.join(defaultReportRoot, 'trait-report.json')
       const clinicalReportPath = env.CLINICAL_REPORT_PATH || path.join(defaultReportRoot, 'clinical-report.json')
+      const ancestryReportPath = env.ANCESTRY_REPORT_PATH || path.join(defaultReportRoot, 'ancestry-report.json')
       const pgsDir = path.join(defaultReportRoot, 'pgs-catalog')
       const pgsPath = path.join(pgsDir, heightPgsModel.fileName)
       const pgsMetadataPath = path.join(pgsDir, `${heightPgsModel.id}.json`)
@@ -174,6 +175,23 @@ function localBridge(): Plugin {
             carrierFindings: [],
             incidentalFindings: [],
             limitations: [],
+          }))
+        }
+      })
+
+      server.middlewares.use('/api/ancestry-report', (_request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        try {
+          const report = JSON.parse(fs.readFileSync(ancestryReportPath, 'utf8')) as Record<string, unknown>
+          response.end(JSON.stringify({ ...report, state: 'ready', mode: 'local' }))
+        } catch {
+          response.end(JSON.stringify({
+            state: 'missing',
+            mode: 'local',
+            sourceName: 'Private ancestry report',
+            sourceNote: 'No imported ancestry estimate is connected',
+            profiles: [],
           }))
         }
       })

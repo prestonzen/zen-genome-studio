@@ -18,7 +18,7 @@ export type LocalStatus = {
   openCravatUrl: string
 }
 
-export type ViewName = 'Overview' | 'Discover' | 'Summary' | 'Record'
+export type ViewName = 'Overview' | 'Discover' | 'Ancestry' | 'Summary' | 'Record'
 export type LandscapeTab = 'Genome map' | 'Polygenic' | 'Data layers'
 
 export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance' | 'Curiosities'
@@ -122,4 +122,27 @@ export type ClinicalReport = {
   carrierFindings: ClinicalFinding[]
   incidentalFindings: ClinicalFinding[]
   limitations: string[]
+}
+
+export type AncestryRegion = {
+  id: string
+  label: string
+  broadRegion: string
+  percent: number
+  color: string
+}
+
+export type AncestryProfile = {
+  id: string
+  label: string
+  relationship: 'self' | 'mother' | 'father' | 'parent'
+  regions: AncestryRegion[]
+}
+
+export type AncestryReport = {
+  state: 'ready' | 'missing'
+  mode: DeploymentMode
+  sourceName: string
+  sourceNote: string
+  profiles: AncestryProfile[]
 }

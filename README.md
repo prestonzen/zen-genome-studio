@@ -163,6 +163,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\start-preview-viewer.ps1
 
 The derived VCF and SQLite result stay under the private Ubuntu home directory, outside this repository. The original VCF is read-only and unchanged. OpenCRAVAT displays the annotated preview at `http://127.0.0.1:8080/`.
 
+## 🌍 Ancestry layers
+
+The private **Ancestry** workspace keeps two methods visibly separate:
+
+| Layer | What it shows | Source |
+| --- | --- | --- |
+| **Imported estimate** | Regional percentages and a family comparison exactly as supplied by a consumer ancestry service | Private `ancestry-report.json`; never recalculated or deployed |
+| **Open-reference analysis** | Reproducible genetic similarity, PCA placement, and coarse mixture estimates | [1000 Genomes 30x GRCh38](https://www.internationalgenome.org/data-portal/data-collections/1000genomes_30x/) with [PLINK 2](https://www.cog-genomics.org/plink/2.0/strat) |
+
+The open panel is scientifically useful for broad structure and sampled cohorts, but it cannot reproduce proprietary fine-region labels. The interface says **genetic ancestry**, not ethnicity: DNA does not measure culture, nationality, or identity.
+
+Copy `docs/ancestry-report.example.json` to `%LOCALAPPDATA%\ZenGenomeStudio\private\ancestry-report.json` to connect an imported estimate. Real profiles must remain outside Git.
+
 ## ✨ Everyday discovery
 
 ![Zen Genome Studio mobile Discover concept](docs/design/neo-mobile-discover-concept.png)
@@ -177,6 +190,8 @@ The first consumer report deliberately stays small and explainable:
 | 💡 Curiosities | Bright-light sneeze marker | A fun odds-shifting association, not a deterministic result. |
 
 Every result includes an evidence grade, direct-marker coverage, plain-language explanation, and research source. **Evidence first** hides low-predictive associations; **Explore associations** deliberately reveals them with an Exploratory label. Percentages appear only when a validated model actually produces one, such as IrisPlex, rather than turning weak evidence into fake precision. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
+
+The expanded **Genome Atlas** also inventories analyses that need the full model or raw read evidence: mitochondrial and Y haplogroups, structural variants, HLA, repeat expansions, pharmacogenomics, blood groups, kinship, runs of homozygosity, sleep chronotype, body composition, and blood-cell scores. See the [discovery source map](docs/DISCOVERY-SOURCES.md) for the evidence boundary and recommended tools.
 
 ### 🧭 Interactive overview
 
@@ -272,6 +287,7 @@ For a TikTok crop, keep the chromosome landscape and recording rail in frame. Re
 - The browser receives only a generic source label, presence state, and file size.
 - The local trait endpoint exposes only the compact derived report, never the source path or full genotype list.
 - The clinical endpoint reads a compact summary from private app data; report PDFs and findings are never bundled into the site.
+- The ancestry endpoint reads only a compact private display summary; raw DNA and imported regional profiles are absent from the public build.
 - Cloudflare mode has no upload route and always reports that no private genome is present.
 - GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
 - Public bug reports require a privacy confirmation before submission.
@@ -328,6 +344,11 @@ Contributions are welcome, but use fictional examples only. Never attach genomic
 - [x] Cloudflare Pages preview architecture
 - [x] Local consumer-trait report with Discover and Summary views
 - [x] Private clinician-report layer with record-safe concealment
+- [x] Private imported ancestry comparison and open-reference methodology
+- [x] Expanded WGS discovery atlas with reputable source links
+- [ ] Run the local 1000 Genomes PCA/admixture pipeline
+- [ ] Add maternal and paternal haplogroup callers
+- [ ] Add read-level structural-variant, HLA, and repeat workflows
 - [ ] Import normalized OpenCRAVAT result summaries
 - [ ] Add an authenticated private-server connector
 - [ ] Publish reusable vertical-video scene presets

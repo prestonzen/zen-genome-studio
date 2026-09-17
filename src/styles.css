@@ -4158,6 +4158,11 @@ button:focus-visible {
   font: 400 9px/1.5 Inter, Arial, sans-serif;
 }
 
+.evidence-lens .term-definition {
+  right: 0;
+  left: auto;
+}
+
 .term-tip:hover .term-definition,
 .term-tip:focus .term-definition,
 .term-tip:focus-within .term-definition {
@@ -4428,6 +4433,574 @@ button:focus-visible {
   }
 
   .pipeline-check > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Private ancestry workspace */
+.ancestry-workspace {
+  padding-top: 22px;
+}
+
+.ancestry-intro {
+  min-height: 88px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ancestry-intro > div {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.ancestry-intro > div > svg {
+  flex: 0 0 auto;
+  color: var(--cyan);
+}
+
+.ancestry-intro h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.08;
+}
+
+.ancestry-intro p {
+  margin: 8px 0 0;
+  color: #aebdc4;
+  font-size: 14px;
+}
+
+.ancestry-intro > button {
+  min-height: 40px;
+  border: 1px solid #3d6674;
+  border-radius: 4px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #dcf4f8;
+  background: rgba(49, 201, 237, .06);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ancestry-intro > button:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.ancestry-definition {
+  min-height: 68px;
+  margin-bottom: 12px;
+  border-top: 1px solid rgba(116, 188, 209, .2);
+  border-bottom: 1px solid rgba(116, 188, 209, .2);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--green);
+  background: rgba(9, 22, 29, .58);
+}
+
+.ancestry-definition div {
+  min-width: 0;
+}
+
+.ancestry-definition strong {
+  color: #e6f0f2;
+  font-size: 11px;
+}
+
+.ancestry-definition p {
+  margin: 4px 0 0;
+  color: #879da6;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.ancestry-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  align-items: start;
+  gap: 12px;
+}
+
+.ancestry-main,
+.ancestry-method {
+  min-width: 0;
+  border: 1px solid rgba(116, 188, 209, .22);
+  border-radius: var(--radius);
+  background: rgba(9, 22, 29, .78);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025), 0 18px 46px rgba(0, 0, 0, .14);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+
+.ancestry-section-heading {
+  min-height: 92px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(116, 188, 209, .16);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.ancestry-section-heading > div > span {
+  color: var(--green);
+  font: 500 8px/1 'IBM Plex Mono', monospace;
+}
+
+.ancestry-section-heading h2 {
+  margin: 6px 0 0;
+  font-size: 19px;
+}
+
+.ancestry-section-heading p {
+  max-width: 680px;
+  margin: 6px 0 0;
+  color: #8298a2;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.ancestry-section-heading > b {
+  flex: 0 0 auto;
+  color: #8ea4ad;
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.ancestry-empty,
+.ancestry-lock {
+  min-height: 330px;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--cyan);
+}
+
+.ancestry-empty > div,
+.ancestry-lock > div {
+  max-width: 440px;
+}
+
+.ancestry-empty strong,
+.ancestry-lock strong {
+  color: #e9f2f4;
+  font-size: 12px;
+}
+
+.ancestry-empty p,
+.ancestry-lock p {
+  margin: 5px 0 0;
+  color: #849aa4;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.ancestry-empty button {
+  min-height: 36px;
+  border: 1px solid #3d6674;
+  border-radius: 4px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--cyan);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ancestry-results {
+  padding: 0 20px 20px;
+}
+
+.ancestry-profile-strips {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(116, 188, 209, .16);
+}
+
+.ancestry-profile-strips > div {
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 142px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.ancestry-profile-strips span {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ancestry-profile-strips strong {
+  color: #e4edef;
+  font-size: 10px;
+}
+
+.ancestry-profile-strips small {
+  color: #748a94;
+  font-size: 8px;
+}
+
+.ancestry-strip {
+  height: 12px;
+  overflow: hidden;
+  display: flex;
+  background: rgba(112, 146, 159, .15);
+}
+
+.ancestry-strip i {
+  min-width: 1px;
+  height: 100%;
+  display: block;
+  border-right: 1px solid rgba(6, 16, 21, .7);
+}
+
+.ancestry-table {
+  margin-top: 14px;
+}
+
+.ancestry-table-head,
+.ancestry-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.15fr) minmax(150px, 1fr) minmax(150px, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.ancestry-table-head {
+  min-height: 34px;
+  color: #708792;
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.ancestry-row {
+  min-height: 58px;
+  border-top: 1px solid rgba(116, 188, 209, .12);
+}
+
+.ancestry-region {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.ancestry-region > i {
+  width: 9px;
+  height: 9px;
+}
+
+.ancestry-region > span {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ancestry-region strong {
+  overflow-wrap: anywhere;
+  color: #dde8eb;
+  font-size: 9px;
+}
+
+.ancestry-region small {
+  color: #718892;
+  font-size: 7px;
+}
+
+.ancestry-percent-cell {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(52px, 1fr) 30px;
+  align-items: center;
+  gap: 9px;
+}
+
+.ancestry-percent-cell > i {
+  height: 7px;
+  display: block;
+  overflow: hidden;
+  background: rgba(112, 146, 159, .15);
+}
+
+.ancestry-percent-cell b {
+  height: 100%;
+  display: block;
+}
+
+.ancestry-percent-cell strong {
+  color: #cddadd;
+  font: 500 9px/1 'IBM Plex Mono', monospace;
+  text-align: right;
+}
+
+.ancestry-family-note {
+  margin-top: 14px;
+  border-top: 1px solid rgba(116, 188, 209, .16);
+  padding: 16px 0 0;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 9px;
+  color: var(--yellow);
+}
+
+.ancestry-family-note p {
+  margin: 0;
+  color: #8398a2;
+  font-size: 8px;
+  line-height: 1.6;
+}
+
+.ancestry-family-note strong {
+  color: #d8e4e7;
+}
+
+.ancestry-method {
+  padding: 20px;
+}
+
+.ancestry-method > header {
+  display: grid;
+  grid-template-columns: 25px 1fr;
+  gap: 9px;
+  color: var(--cyan);
+}
+
+.ancestry-method h2 {
+  margin: 0;
+  color: #e8f1f3;
+  font-size: 16px;
+}
+
+.ancestry-method header p {
+  margin: 5px 0 0;
+  color: #8197a0;
+  font-size: 8px;
+}
+
+.ancestry-method ol {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ancestry-method li {
+  position: relative;
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+}
+
+.ancestry-method li > span {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #3e5b67;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--cyan);
+  font: 500 8px/1 'IBM Plex Mono', monospace;
+}
+
+.ancestry-method li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 26px;
+  bottom: 2px;
+  width: 1px;
+  background: #2b414b;
+}
+
+.ancestry-method li strong {
+  color: #dce7ea;
+  font-size: 9px;
+}
+
+.ancestry-method li p {
+  margin: 5px 0 0;
+  color: #7f949e;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.ancestry-reference-scope {
+  border-top: 1px solid rgba(116, 188, 209, .16);
+  border-bottom: 1px solid rgba(116, 188, 209, .16);
+  padding: 15px 0;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  color: var(--green);
+}
+
+.ancestry-reference-scope p {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.ancestry-reference-scope strong {
+  color: #dce8eb;
+  font-size: 8px;
+}
+
+.ancestry-reference-scope span {
+  margin-bottom: 5px;
+  color: #7f949e;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.ancestry-method > a {
+  min-height: 38px;
+  border-bottom: 1px solid rgba(116, 188, 209, .13);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #9eb4bc;
+  font-size: 8px;
+  text-decoration: none;
+}
+
+.ancestry-method > a:hover {
+  color: var(--cyan);
+}
+
+@media (max-width: 1180px) {
+  .ancestry-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .ancestry-table-head,
+  .ancestry-row {
+    grid-template-columns: minmax(190px, 1.15fr) minmax(120px, 1fr) minmax(120px, 1fr);
+  }
+}
+
+@media (max-width: 920px) {
+  .ancestry-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ancestry-method ol {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .ancestry-method li {
+    min-height: 0;
+  }
+
+  .ancestry-method li::after {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .primary-nav {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .ancestry-workspace {
+    padding: 16px 10px 26px;
+  }
+
+  .ancestry-intro {
+    display: grid;
+    gap: 14px;
+  }
+
+  .ancestry-intro h1 {
+    font-size: 27px;
+  }
+
+  .ancestry-intro > button {
+    width: 100%;
+  }
+
+  .ancestry-definition {
+    margin-top: 10px;
+  }
+
+  .ancestry-section-heading {
+    display: grid;
+  }
+
+  .ancestry-section-heading > b {
+    white-space: normal;
+  }
+
+  .ancestry-results {
+    padding: 0 14px 16px;
+  }
+
+  .ancestry-profile-strips > div {
+    padding: 10px 0;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ancestry-table {
+    overflow: visible;
+  }
+
+  .ancestry-table-head {
+    display: none;
+  }
+
+  .ancestry-row {
+    min-height: 108px;
+    padding: 12px 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+  }
+
+  .ancestry-region {
+    grid-column: 1 / -1;
+  }
+
+  .ancestry-percent-cell {
+    grid-template-columns: minmax(40px, 1fr) 28px;
+    gap: 7px;
+  }
+
+  .ancestry-percent-cell::before {
+    content: attr(data-label);
+    grid-column: 1 / -1;
+    color: #718892;
+    font-size: 7px;
+    text-transform: uppercase;
+  }
+
+  .ancestry-method ol {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .nav-item span {
+    font-size: 8px;
+  }
+
+  .ancestry-method ol {
     grid-template-columns: 1fr;
   }
 }

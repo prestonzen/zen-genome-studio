@@ -4,7 +4,7 @@ This repository contains interface code only. It must never contain raw genome d
 
 The private source folder is configured only in `.env.local`, which Git ignores. The interface returns only a generic source label, presence state, and file size. It does not expose the real path or filename to the browser.
 
-The Cloudflare deployment contains no upload route. Its status Function always reports that no private genome is present. Do not add VCF, FASTQ, BAM, CRAM, Genozip, SQLite result files, private screenshots, or `.env.local` values to Pages, Workers, R2, KV, D1, build logs, or Git history.
+The Cloudflare deployment contains no upload route. Its status and report Functions always return privacy-safe empty or demo states. Do not add VCF, FASTQ, BAM, CRAM, Genozip, SQLite result files, private clinical or ancestry summary JSON, private screenshots, or `.env.local` values to Pages, Workers, R2, KV, D1, build logs, or Git history.
 
 Before recording or sharing a screen:
 

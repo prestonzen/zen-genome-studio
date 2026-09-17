@@ -8,12 +8,16 @@ import {
   FlaskConical,
   Gauge,
   LockKeyhole,
+  Moon,
+  Pill,
   Ruler,
   ScanSearch,
   ShieldAlert,
+  ShieldPlus,
   Sparkles,
   Sun,
   Utensils,
+  Users,
 } from 'lucide-react'
 import { genomeAtlas } from '../data/genomeAtlas'
 import type { AtlasItem } from '../types'
@@ -28,10 +32,14 @@ function AtlasIcon({ id }: { id: string }) {
   if (id.includes('hair')) return <Sparkles size={19} />
   if (id.includes('skin') || id.includes('sneeze')) return <Sun size={19} />
   if (id.includes('height')) return <Ruler size={19} />
+  if (id.includes('chronotype')) return <Moon size={19} />
+  if (id.includes('pharmcat')) return <Pill size={19} />
+  if (id.includes('blood-group') || id.includes('blood-traits') || id.includes('hla')) return <ShieldPlus size={19} />
+  if (id.includes('kinship') || id.includes('roh')) return <Users size={19} />
   if (id.includes('taste') || id.includes('lactose') || id.includes('cilantro')) return <Utensils size={19} />
   if (id.includes('personality') || id.includes('intelligence')) return <Brain size={19} />
   if (id.includes('sv') || id.includes('repeats')) return <ScanSearch size={19} />
-  if (id.includes('hla')) return <FlaskConical size={19} />
+  if (id.includes('mtdna') || id.includes('ydna')) return <FlaskConical size={19} />
   return <Dna size={19} />
 }
 
