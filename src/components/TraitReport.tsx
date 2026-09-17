@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import type { EvidenceLevel, LocalStatus, TraitCategory, TraitReport, TraitResult, ViewName } from '../types'
 import { GenomeAtlas } from './GenomeAtlas'
+import { TermTip } from './TermTip'
 
 type TraitReportProps = {
   report: TraitReport
@@ -56,6 +57,25 @@ function QuickIcon({ index }: { index: number }) {
 
 function EvidenceTag({ level }: { level: EvidenceLevel }) {
   return <span className={`evidence-tag ${level.toLowerCase()}`}>{level}</span>
+}
+
+const traitDefinitions: Partial<Record<string, string>> = {
+  'alcohol-response': 'Alcohol flushing means facial or skin warmth and redness after drinking, often because acetaldehyde is cleared more slowly. This marker is not a safe-drinking score.',
+  actn3: 'ACTN3 makes a protein in fast-twitch muscle fibres. A genotype changes protein status but cannot predict athletic talent.',
+  lactose: 'Lactase persistence is the tendency to keep producing the lactose-digesting enzyme after childhood.',
+  'photic-sneeze': 'The photic sneeze reflex is sneezing after moving into bright light. This marker only shifts the odds.',
+}
+
+function TraitTitle({ trait }: { trait: TraitResult }) {
+  const definition = traitDefinitions[trait.id]
+  return definition ? <TermTip compact term={trait.title} definition={definition} /> : <>{trait.title}</>
+}
+
+function markerCoverage(trait: TraitResult) {
+  const match = trait.callNote.match(/^(\d+)/)
+  if (!match) return null
+  const direct = Number(match[1])
+  return { direct, percent: trait.markerCount ? Math.round(direct / trait.markerCount * 100) : 0 }
 }
 
 function ReportSourceStrip({ report, readsPresent }: { report: TraitReport; readsPresent?: boolean }) {
@@ -103,7 +123,7 @@ function EyeFeature({ report, trait }: { report: TraitReport; trait: TraitResult
         <div className="eye-score">
           <small>Most likely result</small>
           <strong>{trait.result}</strong>
-          <span>{leading.toFixed(1)}% leading probability</span>
+          <span><TermTip compact term={`${leading.toFixed(1)}% model probability`} definition="A probability produced by the complete six-marker IrisPlex model. Most single-marker traits do not have a calibrated percentage like this." /></span>
           <div className="probability-list">
             {rows.map((row) => (
               <div className="probability-row" key={row.label}>
@@ -125,7 +145,7 @@ function TraitSpotlight({ trait }: { trait: TraitResult }) {
   return (
     <article className="trait-spotlight">
       <div className="trait-heading">
-        <div><h3>{trait.title}</h3><p>{trait.markerCount} marker{trait.markerCount === 1 ? '' : 's'} reviewed</p></div>
+        <div><h3><TraitTitle trait={trait} /></h3><p>{trait.markerCount} marker{trait.markerCount === 1 ? '' : 's'} reviewed</p></div>
         <EvidenceTag level={trait.evidence} />
       </div>
       {trait.id === 'hair-pigmentation' && (
@@ -146,12 +166,13 @@ function EvidenceList({ traits }: { traits: TraitResult[] }) {
       <div className="evidence-header"><div><h3>Evidence details</h3><p>What the model looked at and how much weight to give it.</p></div><span>{traits.length} results</span></div>
       <div className="evidence-rows">
         {traits.map((trait) => {
+          const coverage = markerCoverage(trait)
           return (
             <article className="evidence-row" key={trait.id}>
               <TraitIcon id={trait.id} />
-              <div><strong>{trait.title}</strong><small>{trait.result}</small></div>
+              <div><strong><TraitTitle trait={trait} /></strong><small>{trait.result}</small></div>
               <p>{trait.summary}</p>
-              <div className="evidence-meta"><span>{trait.markerCount} marker{trait.markerCount === 1 ? '' : 's'}</span><EvidenceTag level={trait.evidence} /></div>
+              <div className="evidence-meta">{coverage ? <span className="coverage-meter" title={`${coverage.direct} of ${trait.markerCount} markers directly observed`}><i><b style={{ width: `${coverage.percent}%` }} /></i>{coverage.direct}/{trait.markerCount} direct</span> : <span>Reference example</span>}<EvidenceTag level={trait.evidence} /></div>
             </article>
           )
         })}
@@ -184,7 +205,8 @@ type DiscoverViewProps = TraitReportProps & { status: LocalStatus }
 export function DiscoverView({ report, status, loading, onRefresh, onNavigate }: DiscoverViewProps) {
   const [category, setCategory] = useState<TraitCategory>('Appearance')
   const [mode, setMode] = useState<'results' | 'atlas'>('results')
-  const visibleTraits = useMemo(() => report.traits.filter((trait) => trait.category === category), [category, report.traits])
+  const [explore, setExplore] = useState(false)
+  const visibleTraits = useMemo(() => report.traits.filter((trait) => trait.category === category && (explore || trait.evidence !== 'Exploratory')), [category, explore, report.traits])
   const eye = report.traits.find((trait) => trait.id === 'eye-colour')
   const hair = report.traits.find((trait) => trait.id === 'hair-pigmentation')
   const freckles = report.traits.find((trait) => trait.id === 'freckling')
@@ -193,9 +215,12 @@ export function DiscoverView({ report, status, loading, onRefresh, onNavigate }:
     <main className="workspace consumer-workspace">
       <section className="consumer-intro"><div><span className="section-kicker">DISCOVER</span><h1>What your DNA can reveal</h1><p>Everyday traits, model limits, and deeper read-level analyses - in plain language.</p></div></section>
       <ReportSourceStrip report={report} readsPresent={status.reads.present} />
-      <div className="studio-mode" role="tablist" aria-label="Discovery mode">
-        <button className={mode === 'results' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'results'} onClick={() => setMode('results')}>My results</button>
-        <button className={mode === 'atlas' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'atlas'} onClick={() => setMode('atlas')}>Genome atlas</button>
+      <div className="discovery-controls">
+        <div className="studio-mode" role="tablist" aria-label="Discovery mode">
+          <button className={mode === 'results' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'results'} onClick={() => setMode('results')}>My results</button>
+          <button className={mode === 'atlas' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'atlas'} onClick={() => setMode('atlas')}>Genome atlas</button>
+        </div>
+        <div className="evidence-lens"><span><strong>{explore ? 'Explore associations' : 'Evidence first'}</strong><small>{explore ? 'Includes early and low-predictive signals' : 'Hides exploratory-only results'}</small></span><button className={explore ? 'toggle active' : 'toggle'} type="button" role="switch" aria-checked={explore} onClick={() => setExplore((current) => !current)} aria-label="Toggle exploratory associations"><i /></button><TermTip compact term="Evidence lens" definition="Evidence first shows stronger or moderate results. Explore also shows reproducible but weak, ancestry-sensitive, or individually low-predictive associations." /></div>
       </div>
       {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
         mode === 'atlas' ? <GenomeAtlas readsPresent={status.reads.present} onExploreResults={() => setMode('results')} /> : <div className="consumer-grid">
@@ -209,7 +234,7 @@ export function DiscoverView({ report, status, loading, onRefresh, onNavigate }:
                 <div className="appearance-grid"><EyeFeature report={report} trait={eye} /><div className="appearance-secondary"><TraitSpotlight trait={hair} /><TraitSpotlight trait={freckles} /></div></div>
                 <EvidenceList traits={visibleTraits} />
               </>
-            ) : <EvidenceList traits={visibleTraits} />}
+            ) : visibleTraits.length ? <EvidenceList traits={visibleTraits} /> : <section className="exploration-gate"><Sparkles size={25} /><div><h3>This category is exploratory</h3><p>Turn on <strong>Explore associations</strong> to see these signals with their limitations attached.</p></div></section>}
           </section>
           <QuickRead report={report} onNavigate={onNavigate} />
         </div>
@@ -234,7 +259,7 @@ export function SummaryView({ report, loading, onRefresh, onNavigate }: TraitRep
             {grouped.map(({ category, traits }) => (
               <section className="summary-section" key={category}>
                 <h3>{category}</h3>
-                {traits.map((trait) => <article key={trait.id}><div><strong>{trait.title}</strong><EvidenceTag level={trait.evidence} /></div><h4>{trait.result}</h4><p>{trait.summary}</p><a href={trait.sourceUrl} target="_blank" rel="noreferrer">{trait.sourceName}</a></article>)}
+                {traits.map((trait) => <article key={trait.id}><div><strong><TraitTitle trait={trait} /></strong><EvidenceTag level={trait.evidence} /></div><h4>{trait.result}</h4><p>{trait.summary}</p><a href={trait.sourceUrl} target="_blank" rel="noreferrer">{trait.sourceName}</a></article>)}
               </section>
             ))}
           </section>

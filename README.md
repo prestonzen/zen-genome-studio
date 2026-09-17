@@ -164,7 +164,7 @@ The first consumer report deliberately stays small and explainable:
 | 🏃 Performance | ACTN3 protein status and caffeine-response marker | Exploratory only. These do not prescribe training or predict athletic talent. |
 | 💡 Curiosities | Bright-light sneeze marker | A fun odds-shifting association, not a deterministic result. |
 
-Every result includes an evidence grade, marker count, plain-language explanation, and research source. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
+Every result includes an evidence grade, direct-marker coverage, plain-language explanation, and research source. **Evidence first** hides low-predictive associations; **Explore associations** deliberately reveals them with an Exploratory label. Percentages appear only when a validated model actually produces one, such as IrisPlex, rather than turning weak evidence into fake precision. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
 
 ### 🧭 Interactive overview
 
@@ -173,6 +173,7 @@ The Overview is a working explorer rather than a decorative chromosome plot:
 - **Genome map** - select a chromosome, then open a curated gene or region to see its biology, limitations, source, and related local trait result.
 - **Polygenic** - compare height, skin pigmentation, chronotype, and body-composition model readiness without inventing a personal score.
 - **Data layers** - inspect the separate roles of the whole-genome VCF, compressed reads, optional AncestryDNA microarray, and public PGS Catalog models.
+- **Analysis tools** - select **Open tool check**, then **Check tools** to test Ubuntu for the private read, alignment, variant, and polygenic toolchain without uploading or installing anything.
 
 These layers remain separate until genome build, strand orientation, effect alleles, and missing coverage have been reconciled. AncestryDNA can confirm some overlapping rsIDs, while the WGS data remains the broader source.
 
@@ -195,6 +196,8 @@ Check whether the private Genozip archive and local tools are ready without extr
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\check-read-pipeline.ps1
 ```
+
+The same check is available inside the app: **Overview → Open tool check → Check tools**. It translates tool names into jobs such as “Open compressed reads” and “Build and inspect variants.”
 
 An AncestryDNA raw-data export can add a second, independent microarray layer for overlapping markers. Inspect a `.txt` or original `.zip` locally without printing genotypes:
 

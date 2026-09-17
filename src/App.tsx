@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ExternalLink, FileText, Play, ShieldCheck } from 'lucide-react'
 import { ActivityStrip } from './components/ActivityStrip'
 import { ChromosomeLandscape } from './components/ChromosomeLandscape'
+import { GenomeSummary } from './components/GenomeSummary'
 import { InsightRail } from './components/InsightRail'
 import { Sidebar } from './components/Sidebar'
 import { Topbar } from './components/Topbar'
@@ -102,6 +103,13 @@ function App() {
     window.open(status.openCravatUrl, '_blank', 'noopener,noreferrer')
   }
 
+  function openOverviewToolCheck(nextTab: LandscapeTab) {
+    setTab(nextTab)
+    window.setTimeout(() => {
+      document.querySelector('.interactive-landscape')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }
+
   return (
     <div className={recordSafe ? 'app-shell safe' : 'app-shell'}>
       <Sidebar active={view} onChange={changeView} />
@@ -115,8 +123,8 @@ function App() {
       <main className="workspace">
         <section className="page-intro">
           <div>
-            <h1>Whole genome overview</h1>
-            <p>{cloudMode ? 'A privacy-safe cloud preview with no genome data' : 'A private, local view of your variant analysis'}</p>
+            <h1>Your DNA, translated</h1>
+            <p>{cloudMode ? 'A privacy-safe preview with no genome data' : 'Start with plain-language answers, then explore the science underneath'}</p>
           </div>
           <div className="source-actions">
             <div className="source-file">
@@ -135,6 +143,7 @@ function App() {
 
         <div className="dashboard-grid">
           <div className="main-column">
+            <GenomeSummary status={status} report={report} onOpenExplorer={openOverviewToolCheck} />
             <ChromosomeLandscape
               activeTab={tab}
               onTabChange={setTab}

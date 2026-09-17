@@ -61,9 +61,9 @@ export const genomeRegions: GenomeRegion[] = [
     traitId: 'actn3', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/23681449/',
   },
   {
-    id: 'aldh2', chromosome: '12', symbol: 'ALDH2', positionMb: 111.8, title: 'Alcohol metabolism', category: 'Food',
+    id: 'aldh2', chromosome: '12', symbol: 'ALDH2', positionMb: 111.8, title: 'Alcohol breakdown and flushing', category: 'Food',
     summary: 'ALDH2 clears acetaldehyde, a toxic intermediate produced during alcohol metabolism.',
-    interpretation: 'The common reduced-activity variant can contribute to flushing. This marker never establishes a safe amount of alcohol.',
+    interpretation: 'Flushing means the face or skin becomes warm and red as acetaldehyde accumulates. This marker never establishes a safe amount of alcohol.',
     traitId: 'alcohol-response', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/39075523/',
   },
   {

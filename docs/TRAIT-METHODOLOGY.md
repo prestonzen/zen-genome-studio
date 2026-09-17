@@ -10,6 +10,8 @@ Zen Genome Studio's consumer report is intentionally small, local, and explainab
 | **Moderate** | A useful association with meaningful genetic support, but other genes, ancestry, environment, or behavior can materially change the outcome. |
 | **Exploratory** | Interesting biology with limited predictive value for an individual. Never use this category to choose treatment, supplements, or training. |
 
+The Discover screen starts in **Evidence first** mode. **Explore associations** is an explicit opt-in for low-predictive or early associations; it does not upgrade their evidence. A percentage is shown only when a published, validated model produces a calibrated probability. Marker coverage such as `2/6 direct` describes how much source evidence was directly observed, not how confident the prediction is.
+
 ## Included models
 
 | Result | Method | Primary reference |
@@ -40,6 +42,14 @@ Zen Genome Studio's consumer report is intentionally small, local, and explainab
 The configured WGS file stores variant calls rather than every genomic position. When a curated marker is absent, the first report treats it as **presumed reference**, not as a directly observed homozygous-reference call. This is common for a variant-only VCF but is not equivalent to inspecting read coverage at that site.
 
 The UI reports how many markers were directly observed and how many were presumed reference. Important or surprising results should be confirmed against a callable gVCF, BAM/CRAM, or the original reads with an appropriate quality check.
+
+## Whole genome, exome, and carrier testing
+
+- A carrier test checks a selected set of variants or genes for a specific inherited-condition question.
+- An exome focuses on protein-coding exons, roughly 1–2% of the genome. It is efficient for many rare coding disorders but usually does not cover the wider regulatory genome.
+- Whole-genome sequencing retains evidence across coding and non-coding regions. Its raw reads can be reprocessed for small variants and specialized analyses such as structural variants, mitochondrial variation, HLA, and repeat expansions.
+
+Raw FASTQ does not produce meaning by itself. A “full-gene check” still needs alignment, coverage review, an appropriate variant caller, quality thresholds, and expert interpretation. Short-read sequencing also remains difficult in repetitive and highly complex regions.
 
 ## What is intentionally excluded
 

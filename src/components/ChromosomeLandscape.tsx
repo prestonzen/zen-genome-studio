@@ -8,12 +8,15 @@ import {
   FileSearch,
   Gauge,
   Layers3,
+  LoaderCircle,
   Microscope,
   ScanSearch,
+  Wrench,
 } from 'lucide-react'
 import { chromosomes } from '../data/chromosomes'
 import { genomeRegions, polygenicModels, type GenomeRegion } from '../data/genomeRegions'
 import type { LandscapeTab, LocalStatus, TraitReport } from '../types'
+import { TermTip } from './TermTip'
 
 type ChromosomeLandscapeProps = {
   activeTab: LandscapeTab
@@ -103,7 +106,7 @@ function PolygenicView() {
   const [selected, setSelected] = useState(polygenicModels[0])
   return (
     <div className="polygenic-view">
-      <header><div><Gauge size={24} /><span><strong>Polygenic workbench</strong><small>Many variants, one weighted model</small></span></div><p>No personal score is displayed until its inputs and comparison population are validated.</p></header>
+      <header><div><Gauge size={24} /><span><strong>Polygenic workbench</strong><small><TermTip compact term="Polygenic score" definition="A weighted total built from many DNA variants. It estimates a tendency relative to a comparison group, not a destiny or diagnosis." /></small></span></div><p>No personal score is displayed until its inputs and comparison population are validated.</p></header>
       <div className="polygenic-grid">
         <div className="polygenic-list">
           {polygenicModels.map((model) => (
@@ -131,6 +134,28 @@ function DataLayersView({ status }: Pick<ChromosomeLandscapeProps, 'status'>) {
     { id: 'pgs', icon: Gauge, title: 'PGS Catalog models', state: 'Library ready', ready: true, summary: 'Published scoring files with effect alleles, weights, and evaluation metadata.', contribution: 'Adds reproducible polygenic models; it does not add new DNA and must be matched to ancestry and genome build.' },
   ]
   const [selected, setSelected] = useState(layers[0])
+  const [pipeline, setPipeline] = useState<{ available: boolean; tools: { archive: boolean; aligner: boolean; variants: boolean; polygenic: boolean }; note: string } | null>(null)
+  const [checking, setChecking] = useState(false)
+
+  async function checkPipeline() {
+    setChecking(true)
+    try {
+      const response = await fetch('/api/pipeline-status')
+      if (!response.ok) throw new Error('Pipeline check failed')
+      setPipeline(await response.json())
+    } catch {
+      setPipeline({ available: false, tools: { archive: false, aligner: false, variants: false, polygenic: false }, note: 'The local analysis environment could not be checked.' })
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const pipelineRows = pipeline ? [
+    { label: 'Open compressed reads', plain: 'Genozip reader', ready: pipeline.tools.archive },
+    { label: 'Map reads to the genome', plain: 'DNA aligner', ready: pipeline.tools.aligner },
+    { label: 'Build and inspect variants', plain: 'Variant tools', ready: pipeline.tools.variants },
+    { label: 'Calculate published scores', plain: 'Polygenic workflow', ready: pipeline.tools.polygenic },
+  ] : []
   return (
     <div className="data-layers-view">
       <header><div><Layers3 size={24} /><span><strong>Private data layers</strong><small>Each source has a different job</small></span></div><p>Sources stay separate until their genome build, strand, and allele conventions are reconciled.</p></header>
@@ -141,6 +166,10 @@ function DataLayersView({ status }: Pick<ChromosomeLandscapeProps, 'status'>) {
         })}
       </div>
       <article className="layer-detail"><span>SELECTED LAYER</span><h3>{selected.title}</h3><p>{selected.contribution}</p><div><Database size={18} /><p><strong>Privacy boundary</strong>{selected.id === 'pgs' ? 'Only public score definitions are downloaded. Personal genotype calculations remain local.' : 'The browser receives status and summaries, never the original genomic file.'}</p></div></article>
+      <section className="pipeline-check">
+        <header><div><Wrench size={19} /><span><strong>Analysis tools</strong><small>One click checks Ubuntu; nothing is uploaded or installed.</small></span></div><button type="button" onClick={checkPipeline} disabled={checking}>{checking ? <LoaderCircle className="spin" size={15} /> : <ScanSearch size={15} />}{checking ? 'Checking' : pipeline ? 'Check again' : 'Check tools'}</button></header>
+        {pipeline ? <><p>{pipeline.note}</p><div>{pipelineRows.map((row) => <span key={row.label}><i className={row.ready ? 'ready' : ''}>{row.ready ? <Check size={11} /> : '!'}</i><b>{row.label}</b><small>{row.ready ? 'Ready' : `${row.plain} needed`}</small></span>)}</div></> : <p>Select <strong>Check tools</strong> to see exactly which parts of the deeper FASTQ and polygenic pipeline are ready.</p>}
+      </section>
     </div>
   )
 }

@@ -201,11 +201,11 @@ const traits = [
     evidence: 'Exploratory', markerCount: 1, callNote: callNote(['rs72921001']), sourceName: 'Cilantro perception GWAS', sourceUrl: 'https://doi.org/10.1186/2044-7248-1-22',
   },
   {
-    id: 'alcohol-response', category: 'Senses & food', title: 'Alcohol flush marker',
-    result: aldh2ReducedDose > 0 ? 'Reduced ALDH2 activity variant present' : 'Common ALDH2 activity marker',
+    id: 'alcohol-response', category: 'Senses & food', title: 'Alcohol breakdown (ALDH2)',
+    result: aldh2ReducedDose > 0 ? 'Slower breakdown marker linked to flushing' : 'Common breakdown marker; flush variant not detected',
     summary: aldh2ReducedDose > 0
-      ? 'The common reduced-activity ALDH2 variant is present and can increase flushing and acetaldehyde exposure. This is not a safe-drinking score.'
-      : 'The common ALDH2 reduced-activity variant was not observed. Alcohol response and health risk still cannot be inferred from this marker alone.',
+      ? 'This reduced-activity variant can let acetaldehyde build up, making the face or skin feel hot and turn red after alcohol. It does not establish a safe amount to drink.'
+      : 'The common variant strongly linked to facial warmth and redness after alcohol was not observed. That does not make alcohol risk-free or predict your full response.',
     evidence: 'Strong', markerCount: 1, callNote: callNote(['rs671']), sourceName: 'ALDH2 review', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/39075523/',
   },
   {

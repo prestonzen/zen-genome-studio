@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -63,6 +64,24 @@ function localBridge(): Plugin {
         }
 
         response.end(JSON.stringify({ mode: 'local', source, reads, ancestry, opencravat, openCravatUrl }))
+      })
+
+      server.middlewares.use('/api/pipeline-status', (_request, response) => {
+        response.setHeader('Content-Type', 'application/json')
+        response.setHeader('Cache-Control', 'no-store')
+        const tools = { archive: false, aligner: false, variants: false, polygenic: false }
+        try {
+          const script = 'for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done'
+          const output = execFileSync('wsl.exe', ['bash', '-lc', script], { encoding: 'utf8', timeout: 8000 })
+          const found = new Set(output.split(/\r?\n/).filter(Boolean))
+          tools.archive = found.has('genocat') || found.has('genounzip')
+          tools.aligner = found.has('bwa-mem2') || found.has('minimap2')
+          tools.variants = found.has('samtools') && found.has('bcftools')
+          tools.polygenic = found.has('nextflow')
+          response.end(JSON.stringify({ mode: 'local', available: true, tools, note: 'Checked inside the local Ubuntu environment.' }))
+        } catch {
+          response.end(JSON.stringify({ mode: 'local', available: false, tools, note: 'Ubuntu could not be checked yet.' }))
+        }
       })
 
       server.middlewares.use('/api/trait-report', (_request, response) => {

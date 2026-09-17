@@ -108,9 +108,9 @@ export const demoTraitReport: TraitReport = {
     {
       id: 'alcohol-response',
       category: 'Senses & food',
-      title: 'Alcohol flush marker',
-      result: 'Common ALDH2 activity marker',
-      summary: 'The common reduced-activity variant is absent in this fictional example; this is not a safe-drinking score.',
+      title: 'Alcohol breakdown (ALDH2)',
+      result: 'Common breakdown marker; flush variant not detected',
+      summary: 'The common variant strongly linked to facial warmth and redness after alcohol is absent in this fictional example. This is not a safe-drinking score.',
       evidence: 'Strong',
       markerCount: 1,
       callNote: 'Reference preview',
