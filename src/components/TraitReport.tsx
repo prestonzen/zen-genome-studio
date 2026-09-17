@@ -9,14 +9,18 @@ import {
   Eye,
   FileText,
   Info,
+  Leaf,
+  Lightbulb,
   Milk,
   RefreshCw,
   ShieldCheck,
   Sparkles,
   Sun,
   Utensils,
+  Wine,
 } from 'lucide-react'
-import type { EvidenceLevel, TraitCategory, TraitReport, TraitResult, ViewName } from '../types'
+import type { EvidenceLevel, LocalStatus, TraitCategory, TraitReport, TraitResult, ViewName } from '../types'
+import { GenomeAtlas } from './GenomeAtlas'
 
 type TraitReportProps = {
   report: TraitReport
@@ -25,7 +29,7 @@ type TraitReportProps = {
   onNavigate: (view: ViewName) => void
 }
 
-const categories: TraitCategory[] = ['Appearance', 'Senses & food', 'Performance']
+const categories: TraitCategory[] = ['Appearance', 'Senses & food', 'Performance', 'Curiosities']
 
 function TraitIcon({ id, size = 22 }: { id: string; size?: number }) {
   if (id === 'eye-colour') return <Eye size={size} />
@@ -35,6 +39,9 @@ function TraitIcon({ id, size = 22 }: { id: string; size?: number }) {
   if (id.includes('caffeine')) return <Coffee size={size} />
   if (id === 'bitter-taste') return <Utensils size={size} />
   if (id === 'earwax') return <Ear size={size} />
+  if (id === 'cilantro') return <Leaf size={size} />
+  if (id === 'alcohol-response') return <Wine size={size} />
+  if (id === 'photic-sneeze') return <Lightbulb size={size} />
   if (id === 'actn3') return <Dumbbell size={size} />
   return <Activity size={size} />
 }
@@ -51,12 +58,12 @@ function EvidenceTag({ level }: { level: EvidenceLevel }) {
   return <span className={`evidence-tag ${level.toLowerCase()}`}>{level}</span>
 }
 
-function ReportSourceStrip({ report }: { report: TraitReport }) {
+function ReportSourceStrip({ report, readsPresent }: { report: TraitReport; readsPresent?: boolean }) {
   const demo = report.state === 'demo'
   return (
     <div className="report-source-strip">
       <div><FileText size={25} /><span><strong>{report.reportLabel}</strong><small>{report.sourceNote}</small></span></div>
-      <div><Database size={25} /><span><strong>{report.build}</strong><small>Human reference</small></span></div>
+      <div><Database size={25} /><span><strong>{readsPresent === undefined ? report.build : readsPresent ? 'Raw reads detected' : 'Reads not configured'}</strong><small>{readsPresent === undefined ? 'Human reference' : readsPresent ? 'Available for deeper local analysis' : 'VCF results still available'}</small></span></div>
       <div><ShieldCheck size={25} /><span><strong>{demo ? 'Demo only' : 'Local only'}</strong><small>{demo ? 'No personal genome loaded' : 'Your data stays on this device'}</small></span></div>
     </div>
   )
@@ -172,8 +179,11 @@ function QuickRead({ report, onNavigate }: Pick<TraitReportProps, 'report' | 'on
   )
 }
 
-export function DiscoverView({ report, loading, onRefresh, onNavigate }: TraitReportProps) {
+type DiscoverViewProps = TraitReportProps & { status: LocalStatus }
+
+export function DiscoverView({ report, status, loading, onRefresh, onNavigate }: DiscoverViewProps) {
   const [category, setCategory] = useState<TraitCategory>('Appearance')
+  const [mode, setMode] = useState<'results' | 'atlas'>('results')
   const visibleTraits = useMemo(() => report.traits.filter((trait) => trait.category === category), [category, report.traits])
   const eye = report.traits.find((trait) => trait.id === 'eye-colour')
   const hair = report.traits.find((trait) => trait.id === 'hair-pigmentation')
@@ -181,10 +191,14 @@ export function DiscoverView({ report, loading, onRefresh, onNavigate }: TraitRe
 
   return (
     <main className="workspace consumer-workspace">
-      <section className="consumer-intro"><div><h1>Discover your everyday genetics</h1><p>Appearance, senses and performance signals - explained without the jargon.</p></div></section>
-      <ReportSourceStrip report={report} />
+      <section className="consumer-intro"><div><span className="section-kicker">DISCOVER</span><h1>What your DNA can reveal</h1><p>Everyday traits, model limits, and deeper read-level analyses - in plain language.</p></div></section>
+      <ReportSourceStrip report={report} readsPresent={status.reads.present} />
+      <div className="studio-mode" role="tablist" aria-label="Discovery mode">
+        <button className={mode === 'results' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'results'} onClick={() => setMode('results')}>My results</button>
+        <button className={mode === 'atlas' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'atlas'} onClick={() => setMode('atlas')}>Genome atlas</button>
+      </div>
       {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
-        <div className="consumer-grid">
+        mode === 'atlas' ? <GenomeAtlas readsPresent={status.reads.present} onExploreResults={() => setMode('results')} /> : <div className="consumer-grid">
           <section className="trait-canvas">
             <div className="consumer-tabs" role="tablist" aria-label="Trait categories">
               {categories.map((item) => <button key={item} className={category === item ? 'active' : ''} onClick={() => setCategory(item)} role="tab" aria-selected={category === item} type="button">{item}</button>)}

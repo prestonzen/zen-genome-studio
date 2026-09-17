@@ -13,7 +13,7 @@ whole-genome VCFs with [OpenCRAVAT](https://opencravat.org/), and creating polis
 
 </div>
 
-![Zen Genome Studio interface](docs/design/genome-studio-concept.png)
+![Zen Genome Studio Genome Atlas](docs/design/neo-genome-atlas-concept.png)
 
 ```text
                  A · T                 C · G
@@ -109,6 +109,7 @@ Create `.env.local` from `.env.example` and set the private source directory and
 ```dotenv
 GENOME_DATA_DIR=C:\path\to\private-genome-data
 GENOME_VCF_NAME=sample.vcf.gz
+GENOME_READS_NAME=sample.fastq.genozip
 OPENCRAVAT_URL=http://127.0.0.1:8080
 ```
 
@@ -152,17 +153,38 @@ The derived VCF and SQLite result stay under the private Ubuntu home directory, 
 
 ## ✨ Everyday discovery
 
-![Zen Genome Studio Discover concept](docs/design/discover-concept.png)
+![Zen Genome Studio mobile Discover concept](docs/design/neo-mobile-discover-concept.png)
 
 The first consumer report deliberately stays small and explainable:
 
 | Area | Current results | How to read them |
 | --- | --- | --- |
 | 👁️ Appearance | IrisPlex eye-colour probabilities, hair pigmentation, freckling signal | Eye colour has the strongest validated model; hair and freckling remain multi-gene tendencies. |
-| ☕ Senses & food | Lactase persistence, caffeine metabolism, bitter taste, earwax type | Some are strong single-marker traits; others are useful clues with environmental modifiers. |
+| ☕ Senses & food | Lactase persistence, caffeine, bitter taste, earwax, cilantro, ALDH2 | Some are strong single-marker traits; others are useful clues with environmental modifiers. |
 | 🏃 Performance | ACTN3 protein status and caffeine-response marker | Exploratory only. These do not prescribe training or predict athletic talent. |
+| 💡 Curiosities | Bright-light sneeze marker | A fun odds-shifting association, not a deterministic result. |
 
 Every result includes an evidence grade, marker count, plain-language explanation, and research source. Read the full [trait methodology and limitations](docs/TRAIT-METHODOLOGY.md).
+
+### 🧭 Genome Atlas
+
+The **Genome Atlas** answers a different question: *what else could this dataset support?*
+
+| Readiness | Examples | Meaning |
+| --- | --- | --- |
+| ✅ **Ready now** | Eye colour, bitter taste, lactose, cilantro | A compact result can be calculated from the current VCF. |
+| 📊 **Full model** | Skin pigmentation, height | A validated multi-marker or polygenic model must be implemented before showing a result. |
+| 🧬 **Read pipeline** | Ancestry, haplogroups, structural variants | The raw sequencing reads add information beyond the small-variant VCF. |
+| 🔬 **Specialized** | HLA, repeat expansions | A purpose-built caller and careful validation are required. |
+| ⛔ **Not reliable** | Personality, intelligence | Current genetics should not be turned into an individual score. |
+
+Height is intentionally shown as **No estimate yet**. The largest height map contains more than 12,000 independently associated variants; cherry-picking a few would create fake precision. Skin pigmentation is likewise held until the complete 36-marker HIrisPlex-S model is available.
+
+Check whether the private Genozip archive and local tools are ready without extracting anything:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-read-pipeline.ps1
+```
 
 ## 🔬 Annotation toolkit
 
@@ -188,10 +210,12 @@ The studio is designed for vertical-video walkthroughs without turning private b
 1. Open on **Whole genome overview** with **Record-safe mode** enabled.
 2. Hold on the chromosome landscape, then select chromosomes `11`, `17`, and `X`.
 3. Show the source status as **Found** without opening File Explorer.
-4. Open **Discover**, switch between **Appearance**, **Senses & food**, and **Performance**.
-5. Select **View full summary** and explain the Strong / Moderate / Exploratory evidence labels.
-6. Open OpenCRAVAT only when you want the technical variant view.
-7. Return to the studio, start the recording timer, and end on **Nothing leaves this computer**.
+4. Open **Discover**, switch between **Appearance**, **Senses & food**, **Performance**, and **Curiosities**.
+5. Switch to **Genome Atlas** and pause on height: **No estimate yet - full calibrated polygenic score required**.
+6. Scroll to the read-level pipeline rows and show that the raw archive is detected locally.
+7. Select **View full summary** and explain the Strong / Moderate / Exploratory evidence labels.
+8. Open OpenCRAVAT only when you want the technical variant view.
+9. Return to the studio, start the recording timer, and end on **Raw DNA stays on this device**.
 
 For a TikTok crop, keep the chromosome landscape and recording rail in frame. Review every frame before posting, especially tabs, notifications, browser history, filenames, and result details.
 

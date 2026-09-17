@@ -21,7 +21,19 @@ Zen Genome Studio's consumer report is intentionally small, local, and explainab
 | Caffeine sensitivity | `ADORA2A rs5751876`; shown as exploratory | [Genotype and caffeine-response study](https://pmc.ncbi.nlm.nih.gov/articles/PMC6642114/) |
 | Bitter taste | Three-marker `TAS2R38` panel | [Phenome-wide review](https://pubmed.ncbi.nlm.nih.gov/40498099/) |
 | Earwax type | `ABCC11 rs17822931` | [Functional discovery study](https://pubmed.ncbi.nlm.nih.gov/16444273/) |
+| Cilantro perception | `rs72921001` near an olfactory-receptor cluster; shown as exploratory because its individual effect is small | [Cilantro perception GWAS](https://doi.org/10.1186/2044-7248-1-22) |
+| Alcohol flush marker | `ALDH2 rs671`; reports common reduced-activity status, never a safe-drinking score | [ALDH2 review](https://pubmed.ncbi.nlm.nih.gov/39075523/) |
 | ACTN3 status | `ACTN3 rs1815739`; biological status is reported, athletic prediction is not | [Performance-genetics review](https://pubmed.ncbi.nlm.nih.gov/23681449/) |
+| Bright-light sneeze reflex | `rs10427255`; an odds-shifting association shown as exploratory | [Photic sneeze GWAS](https://pmc.ncbi.nlm.nih.gov/articles/PMC6428856/) |
+
+## Atlas models that are not calculated yet
+
+| Trait | Why the studio waits |
+| --- | --- |
+| Skin pigmentation | HIrisPlex-S uses a validated 36-marker model. The current compact pigmentation panel is not a substitute for that classifier. |
+| Height | Height is highly polygenic. A 5.4-million-person study identified 12,111 independent associated variants, and an individual estimate still needs validated score weights, strand/build harmonization, and ancestry-aware calibration. |
+| Ancestry and haplogroups | These require population reference panels and dedicated mitochondrial/Y-chromosome methods rather than a few hand-picked markers. |
+| Structural variants, HLA, repeat expansions | These need read-level or specialized callers and cannot be reconstructed responsibly from a compact trait panel. |
 
 ## Variant-only VCF limitation
 
@@ -34,7 +46,7 @@ The UI reports how many markers were directly observed and how many were presume
 - Disease risk, carrier status, and incidental findings. Those belong in a clinician-reviewed report.
 - Intelligence, personality, attractiveness, or behavioral predictions.
 - Training plans, supplement doses, or nutrition prescriptions based on a single marker.
-- Skin-colour classification or genetic ancestry labels.
+- Skin-colour classification or genetic ancestry labels without the required validated model and reference panels.
 - Large polygenic scores without ancestry-matched validation and proper score harmonization.
 
 ## Privacy boundary

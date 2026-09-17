@@ -4,6 +4,7 @@ import type { LocalStatus } from '../types'
 const emptyStatus: LocalStatus = {
   mode: import.meta.env.DEV ? 'local' : 'cloud',
   source: { present: false },
+  reads: { present: false },
   opencravat: false,
   openCravatUrl: import.meta.env.DEV ? 'http://127.0.0.1:8080' : '',
 }

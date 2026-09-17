@@ -37,6 +37,9 @@ const markers = {
   rs10246939: { ref: 'T', gene: 'TAS2R38' },
   rs17822931: { ref: 'C', gene: 'ABCC11' },
   rs1815739: { ref: 'C', gene: 'ACTN3' },
+  rs72921001: { ref: 'C', gene: 'OR6A2 region' },
+  rs10427255: { ref: 'C', gene: 'ZEB2 region' },
+  rs671: { ref: 'G', gene: 'ALDH2' },
 }
 
 const observed = new Map()
@@ -145,6 +148,9 @@ const sensitivityDose = dosage('rs5751876', 'T')
 const bitterScore = dosage('rs713598', 'G') + dosage('rs1726866', 'G') + dosage('rs10246939', 'C')
 const earwaxDryDose = dosage('rs17822931', 'T')
 const actn3StopDose = dosage('rs1815739', 'T')
+const cilantroLowerSoapDose = dosage('rs72921001', 'A')
+const photicSneezeDose = dosage('rs10427255', 'C')
+const aldh2ReducedDose = dosage('rs671', 'A')
 
 const traits = [
   {
@@ -189,6 +195,20 @@ const traits = [
     evidence: 'Strong', markerCount: 1, callNote: callNote(['rs17822931']), sourceName: 'ABCC11 study', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/16444273/',
   },
   {
+    id: 'cilantro', category: 'Senses & food', title: 'Cilantro perception',
+    result: cilantroLowerSoapDose === 2 ? 'Lower soapy-taste tendency' : cilantroLowerSoapDose === 1 ? 'Slightly lower soapy-taste tendency' : 'Typical soapy-taste sensitivity marker',
+    summary: 'This olfactory-region marker shifts the odds only slightly. Culture, exposure and other variants matter more than this result.',
+    evidence: 'Exploratory', markerCount: 1, callNote: callNote(['rs72921001']), sourceName: 'Cilantro perception GWAS', sourceUrl: 'https://doi.org/10.1186/2044-7248-1-22',
+  },
+  {
+    id: 'alcohol-response', category: 'Senses & food', title: 'Alcohol flush marker',
+    result: aldh2ReducedDose > 0 ? 'Reduced ALDH2 activity variant present' : 'Common ALDH2 activity marker',
+    summary: aldh2ReducedDose > 0
+      ? 'The common reduced-activity ALDH2 variant is present and can increase flushing and acetaldehyde exposure. This is not a safe-drinking score.'
+      : 'The common ALDH2 reduced-activity variant was not observed. Alcohol response and health risk still cannot be inferred from this marker alone.',
+    evidence: 'Strong', markerCount: 1, callNote: callNote(['rs671']), sourceName: 'ALDH2 review', sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/39075523/',
+  },
+  {
     id: 'actn3', category: 'Performance', title: 'ACTN3 muscle protein',
     result: actn3StopDose === 2 ? 'Alpha-actinin-3 absent' : actn3StopDose === 1 ? 'One functional ACTN3 copy' : 'Alpha-actinin-3 likely present',
     summary: 'ACTN3 has a reproducible biological effect, but it cannot predict talent, body type, or the training plan that will work best.',
@@ -199,6 +219,12 @@ const traits = [
     result: sensitivityDose === 2 ? 'Higher sensitivity signal' : sensitivityDose === 1 ? 'Mixed response marker' : 'Lower sensitivity signal',
     summary: 'This ADORA2A marker may influence caffeine response, but sleep, dose, timing and tolerance are more useful day to day.',
     evidence: 'Exploratory', markerCount: 1, callNote: callNote(['rs5751876']), sourceName: 'ADORA2A study', sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6642114/',
+  },
+  {
+    id: 'photic-sneeze', category: 'Curiosities', title: 'Bright-light sneeze reflex',
+    result: photicSneezeDose === 2 ? 'Higher-odds marker profile' : photicSneezeDose === 1 ? 'Intermediate marker profile' : 'Lower-odds marker profile',
+    summary: 'A common marker changes the odds of sneezing when moving into bright light, but this is a probabilistic association rather than a diagnosis.',
+    evidence: 'Exploratory', markerCount: 1, callNote: callNote(['rs10427255']), sourceName: 'Photic sneeze GWAS', sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6428856/',
   },
 ]
 

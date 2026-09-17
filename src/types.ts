@@ -6,6 +6,10 @@ export type LocalStatus = {
     present: boolean
     bytes?: number
   }
+  reads: {
+    present: boolean
+    bytes?: number
+  }
   opencravat: boolean
   openCravatUrl: string
 }
@@ -13,8 +17,27 @@ export type LocalStatus = {
 export type ViewName = 'Overview' | 'Discover' | 'Summary' | 'Record'
 export type LandscapeTab = 'Chromosomes' | 'Clinical' | 'Traits'
 
-export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance'
+export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance' | 'Curiosities'
 export type EvidenceLevel = 'Strong' | 'Moderate' | 'Exploratory'
+
+export type AtlasStatus = 'Ready now' | 'Full model' | 'Read pipeline' | 'Specialized' | 'Not reliable'
+
+export type AtlasItem = {
+  id: string
+  title: string
+  status: AtlasStatus
+  result: string
+  detail: string
+  scale: string
+  sourceUrl?: string
+}
+
+export type AtlasGroup = {
+  id: string
+  title: string
+  description: string
+  items: AtlasItem[]
+}
 
 export type TraitResult = {
   id: string

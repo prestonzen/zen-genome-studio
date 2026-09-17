@@ -3,6 +3,7 @@ export const onRequestGet: PagesFunction = async () => {
     {
       mode: 'cloud',
       source: { present: false },
+      reads: { present: false },
       opencravat: false,
       openCravatUrl: '',
     },

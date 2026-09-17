@@ -108,7 +108,7 @@ function App() {
       <Topbar connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} onOpenAnalysis={openAnalysis} />
 
       {view === 'Discover' ? (
-        <DiscoverView report={report} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
+        <DiscoverView report={report} status={status} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
       ) : view === 'Summary' ? (
         <SummaryView report={report} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
       ) : (

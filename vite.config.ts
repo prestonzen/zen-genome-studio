@@ -10,6 +10,7 @@ function localBridge(): Plugin {
       const env = loadEnv(server.config.mode, process.cwd(), '')
       const dataDir = env.GENOME_DATA_DIR
       const vcfName = env.GENOME_VCF_NAME
+      const readsName = env.GENOME_READS_NAME
       const openCravatUrl = env.OPENCRAVAT_URL || 'http://127.0.0.1:8080'
       const defaultReportRoot = process.env.LOCALAPPDATA
         ? path.join(process.env.LOCALAPPDATA, 'ZenGenomeStudio', 'private')
@@ -20,6 +21,7 @@ function localBridge(): Plugin {
         response.setHeader('Content-Type', 'application/json')
 
         let source: { present: boolean; bytes?: number } = { present: false }
+        let reads: { present: boolean; bytes?: number } = { present: false }
         if (dataDir && vcfName) {
           const vcfPath = path.join(dataDir, vcfName)
           try {
@@ -27,6 +29,16 @@ function localBridge(): Plugin {
             source = { present: stats.isFile(), bytes: stats.size }
           } catch {
             source = { present: false }
+          }
+        }
+
+        if (dataDir && readsName) {
+          const readsPath = path.join(dataDir, readsName)
+          try {
+            const stats = fs.statSync(readsPath)
+            reads = { present: stats.isFile(), bytes: stats.size }
+          } catch {
+            reads = { present: false }
           }
         }
 
@@ -38,7 +50,7 @@ function localBridge(): Plugin {
           opencravat = false
         }
 
-        response.end(JSON.stringify({ mode: 'local', source, opencravat, openCravatUrl }))
+        response.end(JSON.stringify({ mode: 'local', source, reads, opencravat, openCravatUrl }))
       })
 
       server.middlewares.use('/api/trait-report', (_request, response) => {
