@@ -88,11 +88,18 @@ function markerCoverage(trait: TraitResult) {
   return { direct, percent: trait.markerCount ? Math.round(direct / trait.markerCount * 100) : 0 }
 }
 
+function formatRefreshTime(value?: string) {
+  if (!value) return 'Refresh time unavailable'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Refresh time unavailable'
+  return `Last refreshed ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date)}`
+}
+
 function ReportSourceStrip({ report, readsPresent }: { report: TraitReport; readsPresent?: boolean }) {
   const demo = report.state === 'demo'
   return (
     <div className="report-source-strip">
-      <div><FileText size={25} /><span><strong>{report.reportLabel}</strong><small>{report.sourceNote}</small></span></div>
+      <div><FileText size={25} /><span><strong>{report.reportLabel}</strong><small>{report.sourceNote}</small><em>{demo ? 'Demo data' : formatRefreshTime(report.generatedAt)}</em></span></div>
       <div><Database size={25} /><span><strong>{readsPresent === undefined ? report.build : readsPresent ? 'Raw reads detected' : 'Reads not configured'}</strong><small>{readsPresent === undefined ? 'Human reference' : readsPresent ? 'Available for deeper local analysis' : 'VCF results still available'}</small></span></div>
       <div><ShieldCheck size={25} /><span><strong>{demo ? 'Demo only' : 'Local only'}</strong><small>{demo ? 'No personal genome loaded' : 'Your data stays on this device'}</small></span></div>
     </div>

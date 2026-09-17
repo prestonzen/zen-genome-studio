@@ -87,7 +87,7 @@ function App() {
           onNotice={setNotice}
         />
       ) : (
-      <main className="workspace">
+      <main className="workspace" data-testid="scene-overview">
         <section className="page-intro">
           <div>
             <h1>Your DNA, translated</h1>

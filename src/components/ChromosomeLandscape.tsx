@@ -83,6 +83,7 @@ function GenomeMap({ selected, onSelect, report }: Pick<ChromosomeLandscapeProps
       <div className="genome-detail-grid">
         <section className="detail-track">
           <div className="detail-heading"><strong>Chromosome {chosen.name}</strong><span>{(chosen.length / 1_000_000).toFixed(1)} million DNA letters</span><small>{regions.length} CURATED EXAMPLE{regions.length === 1 ? '' : 'S'}</small></div>
+          <p className="chromosome-known-for"><strong>Often discussed for</strong><span>{chosen.title}. {chosen.examples.join(' · ')}</span></p>
           <div className="track-stage" aria-label={`Curated regions on chromosome ${chosen.name}`}>
             <div className="track-bands">{Array.from({ length: 20 }, (_, index) => <i key={index} className={index % 3 === 0 ? 'dark' : index % 4 === 0 ? 'mid' : 'light'} />)}</div>
             {regions.map((region) => <button key={region.id} className={selectedRegion?.id === region.id ? 'gene-marker active' : 'gene-marker'} style={{ left: `${Math.min(98, Math.max(2, region.positionMb / (chosen.length / 1_000_000) * 100))}%` }} type="button" onClick={() => setSelectedRegionId(region.id)} aria-label={`Explore ${region.symbol}: ${region.title}`} aria-pressed={selectedRegion?.id === region.id}><i /><span>{region.symbol}</span></button>)}
@@ -190,7 +191,7 @@ function PolygenicView() {
 export function ChromosomeLandscape(props: ChromosomeLandscapeProps) {
   const tabs: LandscapeTab[] = ['Genome map', 'Polygenic']
   return (
-    <section className="landscape-panel interactive-landscape">
+    <section className="landscape-panel interactive-landscape" data-testid="scene-genome-explorer">
       <div className="landscape-header"><div><h2>Genome explorer</h2><p>Choose a chromosome for plain-English context, then open a marked region for personal results.</p></div><span className="preview-label">INTERACTIVE</span></div>
       <div className="tab-list" role="tablist" aria-label="Genome explorer views">{tabs.map((tab) => <button key={tab} className={props.activeTab === tab ? 'active' : ''} onClick={() => props.onTabChange(tab)} role="tab" aria-selected={props.activeTab === tab} type="button">{tab}</button>)}</div>
       <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : <PolygenicView />}</div>

@@ -1,3 +1,7 @@
+param(
+    [switch]$Force
+)
+
 $ErrorActionPreference = 'Stop'
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -33,9 +37,16 @@ $nodeArgs = @(
     '--output', $reportPath
 )
 
+$sourcePaths = @(
+    $vcfPath,
+    (Join-Path $PSScriptRoot 'build-private-traits.mjs'),
+    $PSCommandPath
+)
+
 if ($settings.ANCESTRY_DNA_NAME) {
     $ancestryPath = Join-Path $settings.GENOME_DATA_DIR $settings.ANCESTRY_DNA_NAME
     if (Test-Path -LiteralPath $ancestryPath -PathType Leaf) {
+        $sourcePaths += $ancestryPath
         $nodeArgs += @('--ancestry', $ancestryPath)
         if ($settings.ANCESTRY_DNA_RELATION) {
             $nodeArgs += @('--ancestry-relation', $settings.ANCESTRY_DNA_RELATION)
@@ -45,9 +56,24 @@ if ($settings.ANCESTRY_DNA_NAME) {
     }
 }
 
+if ((-not $Force) -and (Test-Path -LiteralPath $reportPath -PathType Leaf)) {
+    $reportModified = (Get-Item -LiteralPath $reportPath).LastWriteTimeUtc
+    $newestSource = $sourcePaths |
+        ForEach-Object { (Get-Item -LiteralPath $_).LastWriteTimeUtc } |
+        Sort-Object -Descending |
+        Select-Object -First 1
+
+    if ($reportModified -ge $newestSource) {
+        $cached = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
+        $refreshed = if ($cached.generatedAt) { [DateTimeOffset]::Parse($cached.generatedAt).ToLocalTime().ToString('g') } else { $reportModified.ToLocalTime().ToString('g') }
+        Write-Host "Trait report cache is current. Last refreshed $refreshed."
+        exit 0
+    }
+}
+
 & node @nodeArgs
 if ($LASTEXITCODE -ne 0) {
     throw 'The private trait report could not be generated.'
 }
 
-Write-Host 'Trait report ready. Restart or refresh Zen Genome Studio.'
+Write-Host 'Trait report cache refreshed. Reload Zen Genome Studio to see the update.'

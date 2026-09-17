@@ -28,6 +28,17 @@ function localBridge(): Plugin {
       const pgsScriptPath = path.join(process.cwd(), 'scripts', 'build-private-pgs.mjs')
       const toolSetupScriptPath = path.join(process.cwd(), 'scripts', 'setup-analysis-tools.sh')
 
+      function ubuntuCanRead(filePath?: string) {
+        if (!filePath) return false
+        try {
+          const linuxPath = execFileSync('wsl.exe', ['-d', 'Ubuntu', '-e', 'wslpath', '-a', filePath], { encoding: 'utf8', timeout: 5000 }).trim()
+          execFileSync('wsl.exe', ['-d', 'Ubuntu', '-e', 'test', '-r', linuxPath], { timeout: 5000 })
+          return true
+        } catch {
+          return false
+        }
+      }
+
       function pgsState(note?: string) {
         let installed: boolean
         let bytes: number | undefined
@@ -106,8 +117,12 @@ function localBridge(): Plugin {
         response.setHeader('Content-Type', 'application/json')
         response.setHeader('Cache-Control', 'no-store')
         const tools = { archive: false, aligner: false, variants: false, polygenic: false }
+        const files = {
+          vcf: ubuntuCanRead(dataDir && vcfName ? path.join(dataDir, vcfName) : undefined),
+          reads: ubuntuCanRead(dataDir && readsName ? path.join(dataDir, readsName) : undefined),
+        }
         try {
-          const script = '. /etc/os-release; printf "__DISTRO__=%s\\n" "$NAME"; printf "__USER__=%s\\n" "$(id -un)"; for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done; exit 0'
+          const script = 'export PATH="$HOME/.local/bin:$PATH"; . /etc/os-release; printf "__DISTRO__=%s\\n" "$NAME"; printf "__USER__=%s\\n" "$(id -un)"; for tool in genocat genounzip bwa-mem2 minimap2 samtools bcftools nextflow; do command -v "$tool" >/dev/null 2>&1 && echo "$tool"; done; exit 0'
           const output = execFileSync('wsl.exe', ['-d', 'Ubuntu', '-e', 'bash', '-lc', script], { encoding: 'utf8', timeout: 8000 })
           const lines = output.split(/\r?\n/).filter(Boolean)
           const found = new Set(lines)
@@ -118,10 +133,11 @@ function localBridge(): Plugin {
           const readyCount = Object.values(tools).filter(Boolean).length
           const distribution = lines.find((line) => line.startsWith('__DISTRO__='))?.split('=')[1] || 'Ubuntu'
           const user = lines.find((line) => line.startsWith('__USER__='))?.split('=')[1]
-          const note = readyCount === 4 ? 'Ubuntu and all optional analysis toolkits are ready.' : `Ubuntu is working. ${readyCount} of 4 optional deep-analysis toolkits are installed.`
-          response.end(JSON.stringify({ mode: 'local', available: true, distribution, user, tools, note }))
+          const fileNote = files.vcf && files.reads ? ' Both configured genome files are readable.' : ' One or more configured genome files still need access.'
+          const note = readyCount === 4 ? `Ubuntu and all optional analysis toolkits are ready.${fileNote}` : `Ubuntu is working. ${readyCount} of 4 optional deep-analysis toolkits are installed.${fileNote}`
+          response.end(JSON.stringify({ mode: 'local', available: true, distribution, user, tools, files, note }))
         } catch {
-          response.end(JSON.stringify({ mode: 'local', available: false, tools, note: 'Ubuntu could not be checked yet.' }))
+          response.end(JSON.stringify({ mode: 'local', available: false, tools, files, note: 'Ubuntu could not be checked yet.' }))
         }
       })
 

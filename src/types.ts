@@ -32,6 +32,10 @@ export type PipelineStatus = {
     variants: boolean
     polygenic: boolean
   }
+  files: {
+    vcf: boolean
+    reads: boolean
+  }
   note: string
 }
 

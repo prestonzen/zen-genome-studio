@@ -30,6 +30,7 @@ const emptyPipeline: PipelineStatus = {
   mode: 'local',
   available: false,
   tools: { archive: false, aligner: false, variants: false, polygenic: false },
+  files: { vcf: false, reads: false },
   note: 'Ubuntu has not been checked yet.',
 }
 
@@ -70,7 +71,7 @@ export function PrivacyView({ status, checking, privacyMode, onRefresh, onToggle
       const response = await fetch('/api/open-tool-setup', { method: 'POST', headers: { 'X-Zen-Local': '1' } })
       const result = await response.json() as { launched?: boolean; error?: string }
       if (!response.ok || !result.launched) throw new Error(result.error || 'Setup could not open')
-      onNotice('Ubuntu setup opened in Windows Terminal. Enter your Ubuntu password there, then select Check again.')
+      onNotice('Ubuntu setup opened in Windows Terminal. It installs into your Ubuntu account without uploading genome data.')
     } catch (error) {
       onNotice(error instanceof Error ? error.message : 'The setup window could not be opened.')
     } finally {
@@ -109,6 +110,7 @@ export function PrivacyView({ status, checking, privacyMode, onRefresh, onToggle
             <div><dt>Whole-genome VCF</dt><dd className={status.source.present ? 'ready' : ''}>{status.source.present ? 'Found locally' : 'Not found'}</dd></div>
             <div><dt>Compressed raw reads</dt><dd className={status.reads.present ? 'ready' : ''}>{status.reads.present ? 'Found locally' : 'Not found'}</dd></div>
             <div><dt>AncestryDNA file</dt><dd className={status.ancestry.present ? 'ready' : ''}>{status.ancestry.present ? 'Found locally' : 'Not found'}</dd></div>
+            <div><dt>Ubuntu file access</dt><dd className={pipeline.files.vcf && pipeline.files.reads ? 'ready' : ''}>{pipeline.files.vcf && pipeline.files.reads ? 'VCF + reads readable' : pipeline.available ? 'Check configured paths' : 'Waiting for Ubuntu'}</dd></div>
           </dl>
         </section>
 
@@ -128,7 +130,7 @@ export function PrivacyView({ status, checking, privacyMode, onRefresh, onToggle
         <div className="tool-grid">
           {toolRows.map((row) => <article className={row.ready ? 'ready' : ''} key={row.label}><i>{row.ready ? <Check size={12} /> : '·'}</i><span><strong>{row.label}</strong><small>{row.ready ? 'Ready' : `${row.detail} not installed`}</small></span></article>)}
         </div>
-        {status.mode === 'local' && pipeline.available && readyCount < toolRows.length && <div className="tool-actions"><p>Setup opens Ubuntu in a separate terminal because Ubuntu needs your password to install system packages.</p><button type="button" onClick={launchSetup} disabled={launchingSetup}>{launchingSetup ? <LoaderCircle className="spin" size={15} /> : <TerminalSquare size={15} />}{launchingSetup ? 'Opening setup' : 'Install missing tools'}</button></div>}
+        {status.mode === 'local' && pipeline.available && readyCount < toolRows.length && <div className="tool-actions"><p>Setup installs the missing programs only inside your Ubuntu account. It does not need the genome files or an administrator password.</p><button type="button" onClick={launchSetup} disabled={launchingSetup}>{launchingSetup ? <LoaderCircle className="spin" size={15} /> : <TerminalSquare size={15} />}{launchingSetup ? 'Opening setup' : 'Install missing tools'}</button></div>}
       </section>
     </main>
   )
