@@ -9,6 +9,28 @@ $privateDir = Join-Path $env:LOCALAPPDATA 'ZenGenomeStudio\private'
 $bucket = 'zen-genome-studio-private'
 $modeFlag = if ($Remote) { '--remote' } else { '--local' }
 
+function Get-Sha256Hex {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $stream = [IO.File]::OpenRead($Path)
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    try {
+        return [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $sha256.Dispose()
+        $stream.Dispose()
+    }
+}
+
+function Set-Utf8NoBom {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Value
+    )
+
+    [IO.File]::WriteAllText($Path, $Value, [Text.UTF8Encoding]::new($false))
+}
+
 & (Join-Path $PSScriptRoot 'build-private-traits.ps1')
 if ($LASTEXITCODE -ne 0) {
     throw 'The private trait cache could not be refreshed before publishing.'
@@ -57,7 +79,7 @@ foreach ($definition in $reportDefinitions) {
         id = $definition.Id
         key = $definition.Key
         bytes = $file.Length
-        sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+        sha256 = Get-Sha256Hex -Path $path
         generatedAt = $json.generatedAt
     }
     Write-Host "Published protected summary: $($definition.Id) ($($file.Length) bytes)"
@@ -69,11 +91,12 @@ if ($manifestReports.Count -eq 0) {
 
 $manifestPath = Join-Path ([IO.Path]::GetTempPath()) "zen-genome-manifest-$PID.json"
 try {
-    [ordered]@{
+    $manifestJson = [ordered]@{
         schemaVersion = 1
         publishedAt = [DateTimeOffset]::UtcNow.ToString('o')
         reports = $manifestReports
-    } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $manifestPath -Encoding utf8
+    } | ConvertTo-Json -Depth 6
+    Set-Utf8NoBom -Path $manifestPath -Value $manifestJson
 
     & npx wrangler r2 object put "$bucket/reports/manifest.json" --file $manifestPath --content-type application/json --cache-control 'private, no-store' $modeFlag --force
     if ($LASTEXITCODE -ne 0) {
