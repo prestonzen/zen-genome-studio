@@ -104,10 +104,12 @@ function formatRefreshTime(value?: string) {
 function ReportSourceStrip({ report, readsPresent }: { report: TraitReport; readsPresent?: boolean }) {
   const demo = report.state === 'demo'
   const cloud = report.mode === 'cloud'
+  const readsLabel = readsPresent === undefined ? report.build : cloud && !demo ? 'Raw reads stay local' : readsPresent ? 'Raw reads detected' : 'Reads not configured'
+  const readsNote = readsPresent === undefined ? 'Human reference' : cloud && !demo ? 'Derived results are synced; source reads are not uploaded' : readsPresent ? 'Available for deeper local analysis' : 'VCF results still available'
   return (
     <div className="report-source-strip">
       <div><FileText size={25} /><span><strong>{report.reportLabel}</strong><small>{report.sourceNote}</small><em>{demo ? 'Demo data' : formatRefreshTime(report.generatedAt)}</em></span></div>
-      <div><Database size={25} /><span><strong>{readsPresent === undefined ? report.build : readsPresent ? 'Raw reads detected' : 'Reads not configured'}</strong><small>{readsPresent === undefined ? 'Human reference' : readsPresent ? 'Available for deeper local analysis' : 'VCF results still available'}</small></span></div>
+      <div><Database size={25} /><span><strong>{readsLabel}</strong><small>{readsNote}</small></span></div>
       <div><ShieldCheck size={25} /><span><strong>{demo ? 'Demo only' : cloud ? 'Protected sync' : 'Local report'}</strong><small>{demo ? 'No personal genome loaded' : cloud ? 'Derived summary only; raw DNA stays local' : 'Generated and stored on this device'}</small></span></div>
     </div>
   )
