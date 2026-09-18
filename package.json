@@ -11,7 +11,9 @@
     "score:height": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-private-pgs.ps1",
     "setup:tools": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-analysis-tools.ps1",
     "preview": "vite preview --host 127.0.0.1",
-    "preview:cloudflare": "npm run build && wrangler pages dev",
+    "preview:cloudflare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-cloudflare-preview.ps1",
+    "preview:cloudflare:reports": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-cloudflare-preview.ps1 -PublishReports",
+    "publish:cloud-reports": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publish-cloud-reports.ps1 -Remote",
     "deploy:cloudflare": "npm run build && wrangler pages deploy"
   },
   "dependencies": {

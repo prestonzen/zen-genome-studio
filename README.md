@@ -292,15 +292,15 @@ Read the full [security and privacy policy](SECURITY.md) before contributing or 
 
 ## ☁️ Cloudflare preview
 
-Cloudflare Pages can host the visual interface, but it does **not** run OpenCRAVAT. The annotation engine needs large reference databases, persistent storage, and long-running compute that do not fit a Worker.
+Cloudflare Pages can host a password-gated copy of the visual interface and read compact derived summaries from a private R2 bucket. It does **not** receive raw genome files or run OpenCRAVAT; annotation and scoring stay on the private computer.
 
 ```powershell
-npm run preview:cloudflare
 npx wrangler login
+npm run publish:cloud-reports
 npm run deploy:cloudflare
 ```
 
-See [CLOUDFLARE.md](CLOUDFLARE.md) for platform boundaries and the future private-server architecture.
+When `SITE_PASSWORD` is configured as a Cloudflare secret, every asset and API route is gated. Without it, the deployment is demo-only and personal R2 reports are not served. See [CLOUDFLARE.md](CLOUDFLARE.md) for setup, `dna.prestonzen.com`, refresh, and revocation instructions.
 
 ## 🧱 Project map
 

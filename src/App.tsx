@@ -13,8 +13,8 @@ import { useAncestryReport } from './hooks/useAncestryReport'
 import { useTraitReport } from './hooks/useTraitReport'
 import type { LandscapeTab, ViewName } from './types'
 
-function formatSource(bytes?: number, cloudMode = false) {
-  if (cloudMode) return 'No genome uploaded to Cloudflare'
+function formatSource(bytes?: number, cloudMode = false, reportReady = false) {
+  if (cloudMode) return reportReady ? 'Protected summaries • raw genome stays local' : 'No protected reports published'
   if (!bytes) return 'Source check pending'
   return `${Math.round(bytes / 1_000_000)} MB • source protected`
 }
@@ -30,6 +30,7 @@ function App() {
   const [privacyMode, setPrivacyMode] = useState(true)
   const [notice, setNotice] = useState<string | null>(null)
   const cloudMode = status.mode === 'cloud'
+  const reportReady = status.source.present || Boolean(status.reports?.trait)
 
   useEffect(() => {
     if (!notice) return
@@ -58,7 +59,7 @@ function App() {
   return (
     <div className={privacyMode ? 'app-shell safe' : 'app-shell'}>
       <Sidebar active={view} onChange={changeView} />
-      <Topbar connected={status.opencravat} sourceReady={status.source.present} mode={status.mode} onOpenAnalysis={openAnalysis} />
+      <Topbar connected={status.opencravat} sourceReady={reportReady} mode={status.mode} authEnabled={status.auth?.enabled} onOpenAnalysis={openAnalysis} />
 
       {view === 'Discover' ? (
         <DiscoverView report={report} status={status} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />
@@ -91,12 +92,12 @@ function App() {
         <section className="page-intro">
           <div>
             <h1>Your DNA, translated</h1>
-            <p>{cloudMode ? 'A privacy-safe preview with no genome data' : 'Start with plain-language answers, then explore the science underneath'}</p>
+            <p>{cloudMode ? reportReady ? 'Password-protected results derived locally; raw DNA stays off the cloud' : 'A privacy-safe public demo with no personal genome data' : 'Start with plain-language answers, then explore the science underneath'}</p>
           </div>
           <div className="source-actions">
             <div className="source-file">
               <FileText size={28} strokeWidth={1.6} />
-              <span><strong>{cloudMode ? 'Private genome source' : 'Whole-genome VCF'}</strong><small>{formatSource(status.source.bytes, cloudMode)}</small></span>
+              <span><strong>{cloudMode ? 'Protected report bundle' : 'Whole-genome VCF'}</strong><small>{formatSource(status.source.bytes, cloudMode, reportReady)}</small></span>
               <ShieldCheck className="source-shield" size={17} />
             </div>
           </div>

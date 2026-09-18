@@ -29,10 +29,10 @@ export function useLocalStatus() {
 
   useEffect(() => {
     const firstCheck = window.setTimeout(refresh, 0)
-    const interval = window.setInterval(refresh, 10_000)
+    const interval = import.meta.env.DEV ? window.setInterval(refresh, 10_000) : undefined
     return () => {
       window.clearTimeout(firstCheck)
-      window.clearInterval(interval)
+      if (interval !== undefined) window.clearInterval(interval)
     }
   }, [refresh])
 

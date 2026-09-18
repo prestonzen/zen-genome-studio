@@ -110,7 +110,7 @@ function localBridge(): Plugin {
           opencravat = false
         }
 
-        response.end(JSON.stringify({ mode: 'local', source, reads, ancestry, opencravat, openCravatUrl }))
+        response.end(JSON.stringify({ mode: 'local', source, reads, ancestry, auth: { enabled: false, authenticated: true }, opencravat, openCravatUrl }))
       })
 
       server.middlewares.use('/api/pipeline-status', (_request, response) => {

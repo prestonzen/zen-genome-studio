@@ -14,6 +14,17 @@ export type LocalStatus = {
     present: boolean
     bytes?: number
   }
+  reports?: {
+    trait: boolean
+    clinical: boolean
+    ancestry: boolean
+    polygenic: boolean
+    publishedAt?: string
+  }
+  auth?: {
+    enabled: boolean
+    authenticated: boolean
+  }
   opencravat: boolean
   openCravatUrl: string
 }

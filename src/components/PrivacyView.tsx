@@ -107,10 +107,17 @@ export function PrivacyView({ status, checking, privacyMode, onRefresh, onToggle
             <span><ShieldCheck size={20} /><strong>Studio summaries</strong><small>No raw DNA in the public repo</small></span>
           </div>
           <dl className="privacy-source-list">
-            <div><dt>Whole-genome VCF</dt><dd className={status.source.present ? 'ready' : ''}>{status.source.present ? 'Found locally' : 'Not found'}</dd></div>
-            <div><dt>Compressed raw reads</dt><dd className={status.reads.present ? 'ready' : ''}>{status.reads.present ? 'Found locally' : 'Not found'}</dd></div>
-            <div><dt>AncestryDNA file</dt><dd className={status.ancestry.present ? 'ready' : ''}>{status.ancestry.present ? 'Found locally' : 'Not found'}</dd></div>
-            <div><dt>Ubuntu file access</dt><dd className={pipeline.files.vcf && pipeline.files.reads ? 'ready' : ''}>{pipeline.files.vcf && pipeline.files.reads ? 'VCF + reads readable' : pipeline.available ? 'Check configured paths' : 'Waiting for Ubuntu'}</dd></div>
+            {status.mode === 'cloud' ? <>
+              <div><dt>Raw genome files</dt><dd className="ready">Never uploaded</dd></div>
+              <div><dt>Trait summary</dt><dd className={status.reports?.trait ? 'ready' : ''}>{status.reports?.trait ? 'Protected report ready' : 'Demo only'}</dd></div>
+              <div><dt>Clinical summary</dt><dd className={status.reports?.clinical ? 'ready' : ''}>{status.reports?.clinical ? 'Protected report ready' : 'Not published'}</dd></div>
+              <div><dt>Ancestry summary</dt><dd className={status.reports?.ancestry ? 'ready' : ''}>{status.reports?.ancestry ? 'Protected report ready' : 'Not published'}</dd></div>
+            </> : <>
+              <div><dt>Whole-genome VCF</dt><dd className={status.source.present ? 'ready' : ''}>{status.source.present ? 'Found locally' : 'Not found'}</dd></div>
+              <div><dt>Compressed raw reads</dt><dd className={status.reads.present ? 'ready' : ''}>{status.reads.present ? 'Found locally' : 'Not found'}</dd></div>
+              <div><dt>AncestryDNA file</dt><dd className={status.ancestry.present ? 'ready' : ''}>{status.ancestry.present ? 'Found locally' : 'Not found'}</dd></div>
+              <div><dt>Ubuntu file access</dt><dd className={pipeline.files.vcf && pipeline.files.reads ? 'ready' : ''}>{pipeline.files.vcf && pipeline.files.reads ? 'VCF + reads readable' : pipeline.available ? 'Check configured paths' : 'Waiting for Ubuntu'}</dd></div>
+            </>}
           </dl>
         </section>
 
