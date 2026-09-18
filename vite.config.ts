@@ -3,7 +3,7 @@ import path from 'node:path'
 import { execFile, execFileSync, spawn } from 'node:child_process'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { heightPgsModel } from './src/data/pgsCatalog.ts'
+import { heightPgsModel, pgsModels } from './src/data/pgsCatalog.ts'
 
 function localBridge(): Plugin {
   return {
@@ -23,9 +23,8 @@ function localBridge(): Plugin {
       const ancestryReportPath = env.ANCESTRY_REPORT_PATH || path.join(defaultReportRoot, 'ancestry-report.json')
       const pgsDir = path.join(defaultReportRoot, 'pgs-catalog')
       const pgsPath = path.join(pgsDir, heightPgsModel.fileName)
-      const pgsMetadataPath = path.join(pgsDir, `${heightPgsModel.id}.json`)
       const pgsResultPath = path.join(defaultReportRoot, 'pgs-height-result.json')
-      const pgsScriptPath = path.join(process.cwd(), 'scripts', 'build-private-pgs.mjs')
+      const pgsBundleScriptPath = path.join(process.cwd(), 'scripts', 'build-private-pgs.ps1')
       const toolSetupScriptPath = path.join(process.cwd(), 'scripts', 'setup-analysis-tools.sh')
 
       function ubuntuCanRead(filePath?: string) {
@@ -40,18 +39,25 @@ function localBridge(): Plugin {
       }
 
       function pgsState(note?: string) {
-        let installed: boolean
         let bytes: number | undefined
         let installedAt: string | undefined
         try {
           const stats = fs.statSync(pgsPath)
-          installed = stats.isFile()
-          bytes = stats.size
-          installedAt = stats.mtime.toISOString()
-        } catch {
-          installed = false
-        }
-        return { mode: 'local', installed, bytes, installedAt, model: heightPgsModel, note }
+          if (stats.isFile()) {
+            bytes = stats.size
+            installedAt = stats.mtime.toISOString()
+          }
+        } catch { /* Model status is reported below. */ }
+        const models = pgsModels.map((model) => {
+          const modelPath = path.join(pgsDir, model.fileName)
+          try {
+            const modelStats = fs.statSync(modelPath)
+            return { ...model, installed: modelStats.isFile(), bytes: modelStats.size, installedAt: modelStats.mtime.toISOString() }
+          } catch {
+            return { ...model, installed: false }
+          }
+        })
+        return { mode: 'local', installed: models.every((model) => model.installed), bytes, installedAt, model: heightPgsModel, models, note }
       }
 
       function pgsResultState() {
@@ -184,18 +190,20 @@ function localBridge(): Plugin {
         }
 
         try {
-          if (!fs.existsSync(pgsPath)) {
-            const download = await fetch(heightPgsModel.downloadUrl, { signal: AbortSignal.timeout(60_000) })
-            if (!download.ok) throw new Error(`PGS Catalog returned ${download.status}`)
+          fs.mkdirSync(pgsDir, { recursive: true })
+          for (const model of pgsModels) {
+            const modelPath = path.join(pgsDir, model.fileName)
+            if (fs.existsSync(modelPath)) continue
+            const download = await fetch(model.downloadUrl, { signal: AbortSignal.timeout(120_000) })
+            if (!download.ok) throw new Error(`${model.id} download returned ${download.status}`)
             const payload = Buffer.from(await download.arrayBuffer())
-            if (payload[0] !== 0x1f || payload[1] !== 0x8b) throw new Error('Downloaded score is not a gzip file')
-            fs.mkdirSync(pgsDir, { recursive: true })
-            const temporaryPath = `${pgsPath}.download`
+            if (payload[0] !== 0x1f || payload[1] !== 0x8b) throw new Error(`${model.id} is not a gzip scoring file`)
+            const temporaryPath = `${modelPath}.download`
             fs.writeFileSync(temporaryPath, payload, { mode: 0o600 })
-            fs.renameSync(temporaryPath, pgsPath)
-            fs.writeFileSync(pgsMetadataPath, `${JSON.stringify({ ...heightPgsModel, installedAt: new Date().toISOString() }, null, 2)}\n`, { mode: 0o600 })
+            fs.renameSync(temporaryPath, modelPath)
+            fs.writeFileSync(path.join(pgsDir, `${model.id}.json`), `${JSON.stringify({ ...model, installedAt: new Date().toISOString() }, null, 2)}\n`, { mode: 0o600 })
           }
-          response.end(JSON.stringify(pgsState('Public scoring weights downloaded locally. No genome data was uploaded.')))
+          response.end(JSON.stringify(pgsState('Three public research models are cached locally. No genome data was uploaded.')))
         } catch (error) {
           response.statusCode = 502
           response.end(JSON.stringify({ ...pgsState(), error: error instanceof Error ? error.message : 'The model could not be downloaded.' }))
@@ -224,10 +232,9 @@ function localBridge(): Plugin {
           response.end(JSON.stringify({ ...pgsResultState(), state: 'error', error: 'The private VCF and PGS model must both be available.' }))
           return
         }
-        const vcfPath = path.join(dataDir, vcfName)
         try {
           await new Promise<void>((resolve, reject) => {
-            execFile(process.execPath, [pgsScriptPath, '--vcf', vcfPath, '--score', pgsPath, '--output', pgsResultPath], { timeout: 180_000, windowsHide: true }, (error) => error ? reject(error) : resolve())
+            execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', pgsBundleScriptPath], { timeout: 900_000, windowsHide: true }, (error) => error ? reject(error) : resolve())
           })
           response.end(JSON.stringify(pgsResultState()))
         } catch (error) {

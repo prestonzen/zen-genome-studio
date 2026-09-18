@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { chromosomes, type ChromosomeInfo } from '../data/chromosomes'
 import { genomeRegions, polygenicModels, type GenomeRegion } from '../data/genomeRegions'
-import { heightPgsModel } from '../data/pgsCatalog'
+import { heightPgsModel, pgsModels } from '../data/pgsCatalog'
 import type { LandscapeTab, PgsResult, TraitReport } from '../types'
 import { TermTip } from './TermTip'
 
@@ -112,11 +112,12 @@ type PgsModelState = {
   bytes?: number
   installedAt?: string
   model: typeof heightPgsModel
+  models?: Array<(typeof pgsModels)[number] & { installed: boolean }>
   note?: string
   error?: string
 }
 
-function PolygenicView({ result, loading, calculating, onCalculate }: { result: PgsResult; loading: boolean; calculating: boolean; onCalculate: () => Promise<void> }) {
+function PolygenicView({ result, report, loading, calculating, onCalculate }: { result: PgsResult; report: TraitReport; loading: boolean; calculating: boolean; onCalculate: () => Promise<void> }) {
   const [selectedId, setSelectedId] = useState(polygenicModels[0].id)
   const [pgsState, setPgsState] = useState<PgsModelState | null>(null)
   const [installing, setInstalling] = useState(false)
@@ -142,30 +143,50 @@ function PolygenicView({ result, loading, calculating, onCalculate }: { result: 
     } finally { setInstalling(false) }
   }
 
-  const hasResult = result.state === 'ready'
-  const heightReadiness = hasResult ? Math.max(8, result.coveragePercent) : pgsState?.installed ? 45 : polygenicModels[0].readiness
+  const scores = result.scores?.length ? result.scores : result.state === 'ready' ? [result] : []
+  const selectedScore = scores.find((score) => score.modelId === selected.id)
+  const selectedCatalogModel = pgsModels.find((model) => model.id === selected.id)
+  const skinTrait = report.traits.find((trait) => trait.id === 'skin-pigmentation')
+  function readinessFor(modelId: string, fallback: number) {
+    const score = scores.find((item) => item.modelId === modelId)
+    if (score) return Math.max(5, score.coveragePercent)
+    if (modelId === 'skin-model' && skinTrait) return Math.round(((skinTrait.observedMarkers ?? 0) / Math.max(1, skinTrait.markerCount)) * 100)
+    return pgsState?.installed ? Math.max(fallback, 35) : fallback
+  }
 
   return (
     <div className="polygenic-view">
       <header><div><Gauge size={24} /><span><strong>Polygenic results</strong><small><TermTip compact term="Polygenic score" definition="A weighted total built from many DNA variants. It estimates a tendency relative to a comparison group, not a destiny or diagnosis." /></small></span></div><p>Real calculations show coverage first. A percentile appears only after a matching reference population is available.</p></header>
       <div className="polygenic-grid">
         <div className="polygenic-list">
-          {polygenicModels.map((model) => <button key={model.id} className={selected.id === model.id ? 'active' : ''} onClick={() => setSelectedId(model.id)} type="button" aria-expanded={selected.id === model.id}><span><strong>{model.title}</strong><small>{model.id === 'height-pgs' ? '62,419 variants' : model.scale}</small></span><i><b style={{ width: `${model.id === 'height-pgs' ? heightReadiness : model.readiness}%` }} /></i><em>{model.id === 'height-pgs' && hasResult ? `${result.coveragePercent}% measured` : model.id === 'height-pgs' && pgsState?.installed ? 'Ready to calculate' : model.status}</em><ChevronRight size={16} /></button>)}
+          {polygenicModels.map((model) => {
+            const score = scores.find((item) => item.modelId === model.id)
+            const status = score ? `${score.coveragePercent}% observed` : model.id === 'skin-model' && skinTrait ? `${skinTrait.observedMarkers ?? 0}/${skinTrait.markerCount} markers` : pgsState?.installed ? 'Ready to calculate' : model.status
+            return <button key={model.id} className={selected.id === model.id ? 'active' : ''} onClick={() => setSelectedId(model.id)} type="button" aria-expanded={selected.id === model.id}><span><strong>{model.title}</strong><small>{model.scale}</small></span><i><b style={{ width: `${readinessFor(model.id, model.readiness)}%` }} /></i><em>{status}</em><ChevronRight size={16} /></button>
+          })}
         </div>
         <article className="polygenic-detail">
-          <span>SELECTED MODEL</span><h3>{selected.title}</h3><b>{selected.id === 'height-pgs' && hasResult ? 'Personal calculation available' : selected.status}</b><p>{selected.summary}</p>
-          {selected.id === 'height-pgs' && hasResult ? (
-            <section className="pgs-result-card">
-              <header><span><small>OBSERVED WEIGHTED SCORE</small><strong>{result.weightedScore?.toFixed(4)}</strong></span><b>Partial result</b></header>
-              <div className="pgs-metrics"><span><strong>{result.matchedVariants.toLocaleString()}</strong><small>of {result.modelVariants.toLocaleString()} model variants directly present</small></span><span><strong>{result.coveragePercent}%</strong><small>direct genotype coverage</small></span><span><strong>{result.weightCoveragePercent}%</strong><small>model weight represented</small></span><span><strong>{result.effectAlleles?.toLocaleString()}</strong><small>effect-allele copies counted</small></span></div>
-              <div className="pgs-coverage"><span><i style={{ width: `${result.coveragePercent}%` }} /></span><small>Directly observed in the variant-only VCF</small></div>
-              <p><strong>What this number means</strong>{result.interpretation}</p><p><strong>Why there is no percentile yet</strong>{result.nextStep}</p>
-              <button type="button" onClick={onCalculate} disabled={calculating || result.mode === 'cloud'}>{calculating ? <LoaderCircle className="spin" size={14} /> : <Gauge size={14} />}{result.mode === 'cloud' ? 'Recalculate locally' : calculating ? 'Recalculating' : 'Recalculate from VCF'}</button>
+          <span>SELECTED MODEL</span><h3>{selected.title}</h3><b>{selectedScore ? 'Personal partial calculation available' : selected.id === 'skin-model' && skinTrait ? 'Marker coverage audited' : selected.status}</b><p>{selected.summary}</p>
+          {selected.id === 'skin-model' && skinTrait ? (
+            <section className="pgs-result-card skin-readiness-card">
+              <header><span><small>TRACKED MARKERS OBSERVED</small><strong>{skinTrait.observedMarkers ?? 0}/{skinTrait.markerCount}</strong></span><b>Coverage audit</b></header>
+              <div className="pgs-coverage"><span><i style={{ width: `${Math.round(((skinTrait.observedMarkers ?? 0) / skinTrait.markerCount) * 100)}%` }} /></span><small>{skinTrait.callNote}</small></div>
+              <p><strong>What this means</strong>{skinTrait.summary}</p><p><strong>Why there is no shade category</strong>{skinTrait.limitation}</p>
             </section>
-          ) : selected.id === 'height-pgs' ? (
+          ) : selectedScore ? (
+            <section className="pgs-result-card">
+              <header><span><small>OBSERVED WEIGHTED SCORE</small><strong>{selectedScore.weightedScore?.toFixed(4)}</strong></span><b>Partial result</b></header>
+              <div className="pgs-metrics"><span><strong>{selectedScore.matchedVariants.toLocaleString()}</strong><small>of {selectedScore.modelVariants.toLocaleString()} model variants directly present</small></span><span><strong>{selectedScore.coveragePercent}%</strong><small>direct genotype coverage</small></span><span><strong>{selectedScore.weightCoveragePercent}%</strong><small>model weight represented</small></span><span><strong>{selectedScore.effectAlleles?.toLocaleString()}</strong><small>effect-allele copies counted</small></span></div>
+              <div className="pgs-coverage"><span><i style={{ width: `${selectedScore.coveragePercent}%` }} /></span><small>Directly observed in the variant-only VCF</small></div>
+              <p><strong>What this number means</strong>{selectedScore.interpretation}</p><p><strong>Why there is no percentile yet</strong>{selectedScore.nextStep}</p>
+              {selectedCatalogModel?.ancestryNote ? <p><strong>Population context</strong>{selectedCatalogModel.ancestryNote}</p> : null}
+              {selectedCatalogModel?.licenseNote ? <p><strong>Model terms</strong>{selectedCatalogModel.licenseNote}</p> : null}
+              <button type="button" onClick={onCalculate} disabled={calculating || selectedScore.mode === 'cloud'}>{calculating ? <LoaderCircle className="spin" size={14} /> : <Gauge size={14} />}{selectedScore.mode === 'cloud' ? 'Recalculate locally' : calculating ? 'Recalculating' : 'Refresh all scores'}</button>
+            </section>
+          ) : selectedCatalogModel ? (
             <section className={pgsState?.installed ? 'pgs-installer installed' : 'pgs-installer'}>
-              <header><div><Download size={17} /><span><strong>{pgsState?.installed ? `${heightPgsModel.id} is ready` : `Add ${heightPgsModel.id}`}</strong><small>{heightPgsModel.variants.toLocaleString()} public weights · {heightPgsModel.build}</small></span></div><button type="button" onClick={pgsState?.installed ? onCalculate : installHeightModel} disabled={installing || calculating || pgsState?.mode === 'cloud'}>{installing || calculating || loading ? <LoaderCircle className="spin" size={14} /> : pgsState?.installed ? <Gauge size={14} /> : <Download size={14} />}{installing ? 'Adding model' : calculating || loading ? 'Calculating' : pgsState?.installed ? 'Calculate my score' : 'Add locally'}</button></header>
-              <p>{result.error || pgsState?.error || pgsState?.note || 'The public score definition is local. Calculation reads the private VCF without uploading it.'}</p>
+              <header><div><Download size={17} /><span><strong>{pgsState?.installed ? 'Research models are ready' : 'Add three research models'}</strong><small>Height · chronotype · BMI tendency</small></span></div><button type="button" onClick={pgsState?.installed ? onCalculate : installHeightModel} disabled={installing || calculating || pgsState?.mode === 'cloud'}>{installing || calculating || loading ? <LoaderCircle className="spin" size={14} /> : pgsState?.installed ? <Gauge size={14} /> : <Download size={14} />}{installing ? 'Adding models' : calculating || loading ? 'Calculating' : pgsState?.installed ? 'Calculate all scores' : 'Add locally'}</button></header>
+              <p>{result.error || pgsState?.error || pgsState?.note || 'Public scoring weights stay in the private cache. Calculation reads the private VCF without uploading it.'}</p>
             </section>
           ) : <div><Layers3 size={19} /><p><strong>What is still needed</strong>{selected.next}</p></div>}
           <a href={selected.sourceUrl} target="_blank" rel="noreferrer">Open model source <ArrowUpRight size={15} /></a>
@@ -181,7 +202,7 @@ export function ChromosomeLandscape(props: ChromosomeLandscapeProps) {
     <section className="landscape-panel interactive-landscape" data-testid="scene-genome-explorer">
       <div className="landscape-header"><div><h2>Genome explorer</h2><p>Choose a chromosome for plain-English context, then open a marked region for personal results.</p></div><span className="preview-label">INTERACTIVE</span></div>
       <div className="tab-list" role="tablist" aria-label="Genome explorer views">{tabs.map((tab) => <button key={tab} className={props.activeTab === tab ? 'active' : ''} onClick={() => props.onTabChange(tab)} role="tab" aria-selected={props.activeTab === tab} type="button">{tab}</button>)}</div>
-      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : <PolygenicView result={props.pgsResult} loading={props.pgsLoading} calculating={props.pgsCalculating} onCalculate={props.onCalculatePgs} />}</div>
+      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : <PolygenicView result={props.pgsResult} report={props.report} loading={props.pgsLoading} calculating={props.pgsCalculating} onCalculate={props.onCalculatePgs} />}</div>
     </section>
   )
 }

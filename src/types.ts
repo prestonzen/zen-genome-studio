@@ -50,7 +50,7 @@ export type PipelineStatus = {
   note: string
 }
 
-export type PgsResult = {
+export type PgsScoreResult = {
   state: 'ready' | 'missing' | 'error'
   mode: DeploymentMode
   modelId: string
@@ -72,6 +72,10 @@ export type PgsResult = {
   error?: string
 }
 
+export type PgsResult = PgsScoreResult & {
+  scores?: PgsScoreResult[]
+}
+
 export type TraitCategory = 'Appearance' | 'Senses & food' | 'Performance' | 'Curiosities'
 export type EvidenceLevel = 'Strong' | 'Moderate' | 'Exploratory'
 
@@ -84,6 +88,8 @@ export type AtlasItem = {
   result: string
   detail: string
   scale: string
+  genes?: string[]
+  chromosomes?: string[]
   sourceUrl?: string
 }
 
@@ -105,6 +111,14 @@ export type TraitResult = {
   callNote: string
   sourceName: string
   sourceUrl: string
+  resultState?: 'observed' | 'partial' | 'unresolved'
+  observedMarkers?: number
+  missingMarkers?: number
+  markerIds?: string[]
+  genes?: string[]
+  chromosomes?: string[]
+  definition?: string
+  limitation?: string
 }
 
 export type TraitReport = {

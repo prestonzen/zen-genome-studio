@@ -195,7 +195,7 @@ The expanded **Genome Atlas** also inventories analyses that need the full model
 The Overview is a working explorer rather than a decorative chromosome plot:
 
 - **Genome map** - select a chromosome, then open a curated gene or region to see its biology, limitations, source, and related local trait result.
-- **Polygenic** - calculate the directly measurable part of the 62,419-variant height model and show genotype coverage, weight coverage, and the local weighted score.
+- **Polygenic** - calculate the directly measurable portions of research models for height, sleep chronotype, and BMI tendency, with genotype coverage, weight coverage, and the raw local scores shown before interpretation.
 - **Privacy** - inspect the separate roles of the whole-genome VCF, compressed reads, optional AncestryDNA microarray, and public PGS Catalog models.
 - **Analysis tools** - open **Privacy** to see Ubuntu separately from its optional read, alignment, variant, and polygenic packages. **Install missing tools** opens an interactive Ubuntu setup window.
 
@@ -208,18 +208,18 @@ The **Genome Atlas** answers a different question: *what else could this dataset
 | Readiness | Examples | Meaning |
 | --- | --- | --- |
 | ✅ **Ready now** | Eye colour, bitter taste, lactose, cilantro | A compact result can be calculated from the current VCF. |
-| 📊 **Full model** | Skin pigmentation, height | A validated multi-marker or polygenic model must be implemented before showing a result. |
+| 📊 **Full model** | Skin pigmentation, calibrated polygenic percentiles | A complete model and an ancestry-matched reference population are needed before showing a categorical or percentile result. |
 | 🧬 **Read pipeline** | Ancestry, haplogroups, structural variants | The raw sequencing reads add information beyond the small-variant VCF. |
 | 🔬 **Specialized** | HLA, repeat expansions | A purpose-built caller and careful validation are required. |
 | ⛔ **Not reliable** | Personality, intelligence | Current genetics should not be turned into an individual score. |
 
-Height is intentionally shown as **No estimate yet**. The largest height map contains more than 12,000 independently associated variants; cherry-picking a few would create fake precision. Skin pigmentation is likewise held until the complete 36-marker HIrisPlex-S model is available.
+The app reports raw partial polygenic scores rather than converting them into height, sleep, or BMI predictions. Cherry-picking a few markers or calibrating against the wrong population would create fake precision. Skin pigmentation is shown as model readiness until a complete validated prediction model can be run.
 
 ### 📊 Add a PGS Catalog model
 
-Open **Overview → Polygenic → Height**, then select **Add locally**. The studio downloads the public GRCh38-harmonized scoring file for [PGS003895](https://www.pgscatalog.org/score/PGS003895/) into the private Zen Genome Studio app-data directory. This model contains 62,419 variants and has evaluation results across European, South Asian, African, and an East Asian-containing multi-ancestry sample.
+Open **Overview → Polygenic**, then select **Add locally**. The studio downloads public GRCh38-harmonized scoring files for [height PGS003895](https://www.pgscatalog.org/score/PGS003895/), [chronotype PGS002684](https://www.pgscatalog.org/score/PGS002684/), and [BMI PGS000027](https://www.pgscatalog.org/score/PGS000027/) into the private Zen Genome Studio app-data directory.
 
-After the model is present, **Calculate my score** matches its harmonized positions and effect alleles against the private VCF. The studio displays the exact partial weighted sum, directly observed variant count, genotype coverage, and represented model weight. That result stays in private app data and is never committed.
+After the models are present, **Calculate all scores** matches their harmonized positions and effect alleles against the private VCF. The studio displays each partial weighted sum, directly observed variant count, genotype coverage, and represented model weight. The compact result bundle stays in private app data and is never committed.
 
 The partial sum is not presented as a height percentile or centimetre estimate. A variant-only VCF omits many confidently normal-reference sites, and an absent row can also mean unreported. A responsible percentile still needs a callable genotype dataset plus an ancestry-matched reference distribution. The model download sends no genotype or genome file to PGS Catalog.
 

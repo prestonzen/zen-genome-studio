@@ -9,9 +9,11 @@ for (let index = 2; index < process.argv.length; index += 2) args.set(process.ar
 const vcfPath = args.get('--vcf')
 const scorePath = args.get('--score')
 const outputPath = args.get('--output')
+const modelId = args.get('--model-id') || 'PGS003895'
+const trait = args.get('--trait') || 'Standing height'
 
 if (!vcfPath || !scorePath || !outputPath) {
-  console.error('Usage: node build-private-pgs.mjs --vcf <file.vcf.gz> --score <PGS.txt.gz> --output <result.json>')
+  console.error('Usage: node build-private-pgs.mjs --vcf <file.vcf.gz> --score <PGS.txt.gz> --output <result.json> [--model-id PGS...] [--trait name]')
   process.exit(1)
 }
 
@@ -125,8 +127,8 @@ const roundedScore = Math.round(weightedScore * 1_000_000) / 1_000_000
 const result = {
   state: 'ready',
   mode: 'local',
-  modelId: 'PGS003895',
-  trait: 'Standing height',
+  modelId,
+  trait,
   generatedAt: new Date().toISOString(),
   modelVariants,
   positionedVariants,
@@ -138,9 +140,9 @@ const result = {
   passCalls,
   filteredCalls,
   incompatibleCalls,
-  interpretation: `The value ${roundedScore.toFixed(4)} is the exact weighted contribution from ${matchedVariants.toLocaleString()} score variants explicitly present in the VCF. It is a measured partial score, not a height estimate.`,
-  nextStep: `The current file reports variant sites, not every confidently normal-reference site. ${coveragePercent}% of this model was directly measurable, so a percentile or centimetre estimate would be false precision until a callable genotype dataset and an ancestry-matched reference distribution are added.`,
-  sourceNote: 'Calculated locally from the private GRCh38 VCF and PGS003895. No genotype data was uploaded.',
+  interpretation: `The value ${roundedScore.toFixed(4)} is the exact weighted contribution from ${matchedVariants.toLocaleString()} score variants explicitly present in the VCF. It is a measured partial score, not a calibrated ${trait.toLowerCase()} prediction.`,
+  nextStep: `The current file reports variant sites, not every confidently normal-reference site. ${coveragePercent}% of this model was directly measurable, so converting it to a percentile or personal trait estimate would be false precision until a callable genotype dataset and an ancestry-matched reference distribution are added.`,
+  sourceNote: `Calculated locally from the private GRCh38 VCF and ${modelId}. No genotype data was uploaded.`,
 }
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true })

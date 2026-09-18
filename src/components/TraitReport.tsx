@@ -58,14 +58,6 @@ function TraitIcon({ id, size = 22 }: { id: string; size?: number }) {
   return <Activity size={size} />
 }
 
-function QuickIcon({ index }: { index: number }) {
-  if (index === 0) return <Eye size={23} />
-  if (index === 1) return <Sparkles size={23} />
-  if (index === 2) return <Milk size={23} />
-  if (index === 3) return <Dumbbell size={23} />
-  return <Info size={23} />
-}
-
 function EvidenceTag({ level }: { level: EvidenceLevel }) {
   return <span className={`evidence-tag ${level.toLowerCase()}`}>{level}</span>
 }
@@ -93,6 +85,9 @@ function TraitTitle({ trait }: { trait: TraitResult }) {
 }
 
 function markerCoverage(trait: TraitResult) {
+  if (typeof trait.observedMarkers === 'number') {
+    return { direct: trait.observedMarkers, percent: trait.markerCount ? Math.round(trait.observedMarkers / trait.markerCount * 100) : 0 }
+  }
   const match = trait.callNote.match(/^(\d+)/)
   if (!match) return null
   const direct = Number(match[1])
@@ -132,141 +127,106 @@ function MissingReport({ loading, onRefresh }: Pick<TraitReportProps, 'loading' 
   )
 }
 
-function EyeFeature({ report, trait }: { report: TraitReport; trait: TraitResult }) {
-  const probabilities = report.eyeProbabilities ?? { brown: 0, intermediate: 0, blue: 0 }
-  const rows = [
-    { label: 'Brown', value: probabilities.brown, className: 'brown' },
-    { label: 'Intermediate', value: probabilities.intermediate, className: 'intermediate' },
-    { label: 'Blue', value: probabilities.blue, className: 'blue' },
-  ]
-  const leading = Math.max(...rows.map((row) => row.value))
-
-  return (
-    <article className="eye-feature">
-      <div className="trait-heading">
-        <div><h3>Eye colour</h3><p>Six-marker IrisPlex model</p></div>
-        <EvidenceTag level={trait.evidence} />
-      </div>
-      <div className="eye-result-grid">
-        <img src="/assets/hazel-iris.webp" alt="Brown and hazel iris reference visualization" />
-        <div className="eye-score">
-          <small>Most likely result</small>
-          <strong>{trait.result}</strong>
-          <span><TermTip compact term={`${leading.toFixed(1)}% model probability`} definition="A probability produced by the complete six-marker IrisPlex model. Most single-marker traits do not have a calibrated percentage like this." /></span>
-          <div className="probability-list">
-            {rows.map((row) => (
-              <div className="probability-row" key={row.label}>
-                <label>{row.label}</label>
-                <span className="probability-track"><i className={row.className} style={{ width: `${Math.max(row.value, 1)}%` }} /></span>
-                <b>{row.value.toFixed(1)}%</b>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <p className="trait-explanation">{trait.summary}</p>
-      <small className="call-note">{trait.callNote}</small>
-    </article>
-  )
+function resultStateFor(trait: TraitResult) {
+  if (trait.resultState) return trait.resultState
+  const coverage = markerCoverage(trait)
+  if (!coverage) return trait.callNote.toLowerCase().includes('reference preview') ? 'partial' : 'unresolved'
+  if (coverage.direct === 0) return 'unresolved'
+  return coverage.direct === trait.markerCount ? 'observed' : 'partial'
 }
 
-function TraitSpotlight({ trait }: { trait: TraitResult }) {
-  return (
-    <article className="trait-spotlight">
-      <div className="trait-heading">
-        <div><h3><TraitTitle trait={trait} /></h3><p>{trait.markerCount} marker{trait.markerCount === 1 ? '' : 's'} reviewed</p></div>
-        <EvidenceTag level={trait.evidence} />
-      </div>
-      {trait.id === 'hair-pigmentation' && (
-        <div className="hair-swatches" aria-label="Hair pigmentation spectrum">
-          {['#22170f', '#4a2f1d', '#795133', '#b38658'].map((color, index) => <i key={color} style={{ background: color }} className={index === 1 ? 'selected' : ''} />)}
-        </div>
-      )}
-      <div className="spotlight-result"><TraitIcon id={trait.id} size={28} /><span><small>Result</small><strong>{trait.result}</strong></span></div>
-      <p>{trait.summary}</p>
-      <small className="call-note">{trait.callNote}</small>
-    </article>
-  )
+function ResultStateTag({ trait }: { trait: TraitResult }) {
+  const state = resultStateFor(trait)
+  const label = state === 'observed' ? 'Directly observed' : state === 'partial' ? 'Partial calls' : 'Unresolved'
+  return <span className={`result-state ${state}`}>{label}</span>
+}
+
+function ChromosomeLinks({ chromosomes = [] }: Pick<TraitResult, 'chromosomes'>) {
+  if (!chromosomes.length) return <span className="empty-detail">Not mapped in this summary</span>
+  return <span className="chromosome-links">{chromosomes.map((chromosome) => <a key={chromosome} href={`https://www.ensembl.org/Homo_sapiens/Location/Chromosome?r=${encodeURIComponent(chromosome)}`} target="_blank" rel="noreferrer">Chr {chromosome}</a>)}</span>
 }
 
 function EvidenceList({ traits }: { traits: TraitResult[] }) {
   return (
-    <section className="evidence-list">
-      <div className="evidence-header"><div><h3>Evidence details</h3><p>What the model looked at and how much weight to give it.</p></div><span>{traits.length} results</span></div>
-      <div className="evidence-rows">
-        {traits.map((trait) => {
-          const coverage = markerCoverage(trait)
-          return (
-            <article className="evidence-row" key={trait.id}>
-              <TraitIcon id={trait.id} />
-              <div><strong><TraitTitle trait={trait} /></strong><small>{trait.result}</small></div>
-              <p>{trait.summary}</p>
-              <div className="evidence-meta">{coverage ? <span className="coverage-meter" title={`${coverage.direct} of ${trait.markerCount} markers directly observed`}><i><b style={{ width: `${coverage.percent}%` }} /></i>{coverage.direct}/{trait.markerCount} direct</span> : <span>Reference example</span>}<EvidenceTag level={trait.evidence} /></div>
-            </article>
-          )
-        })}
-      </div>
+    <section className="result-index" aria-label="Personal trait results">
+      {traits.map((trait, index) => {
+        const coverage = markerCoverage(trait)
+        const openByDefault = index === 0
+        return (
+          <details className={`result-record ${resultStateFor(trait)}`} key={trait.id} open={openByDefault}>
+            <summary>
+              <span className="result-icon"><TraitIcon id={trait.id} /></span>
+              <span className="result-name"><small>{trait.category}</small><strong>{trait.title}</strong></span>
+              <span className="result-call"><small>Personal result</small><strong>{trait.result}</strong></span>
+              <span className="result-coverage">{coverage ? <><i><b style={{ width: `${coverage.percent}%` }} /></i><small>{coverage.direct}/{trait.markerCount} explicit markers</small></> : <small>Coverage unavailable</small>}</span>
+              <span className="result-labels"><ResultStateTag trait={trait} /><EvidenceTag level={trait.evidence} /></span>
+              <ArrowRight size={16} />
+            </summary>
+            <div className="result-record-detail">
+              <section className="result-explanation"><strong>Plain-language read</strong><p>{trait.summary}</p><small>{trait.callNote}</small></section>
+              <dl>
+                <div><dt>Genes / region</dt><dd>{trait.genes?.join(' · ') || 'Not listed'}</dd></div>
+                <div><dt>Chromosomes</dt><dd><ChromosomeLinks chromosomes={trait.chromosomes} /></dd></div>
+                <div><dt>What it is</dt><dd>{trait.definition || 'A published genetic association or model.'}</dd></div>
+                <div><dt>What it cannot tell you</dt><dd>{trait.limitation || 'It is not a guarantee or diagnosis.'}</dd></div>
+              </dl>
+              <a href={trait.sourceUrl} target="_blank" rel="noreferrer">{trait.sourceName} <ExternalLink size={14} /></a>
+            </div>
+          </details>
+        )
+      })}
     </section>
-  )
-}
-
-function QuickRead({ report, onNavigate }: Pick<TraitReportProps, 'report' | 'onNavigate'>) {
-  return (
-    <aside className="quick-read">
-      <h2>Your quick read</h2>
-      <div className="quick-points">
-        {report.quickRead.map((item, index) => {
-          return <div key={item}><QuickIcon index={index} /><p>{item}</p></div>
-        })}
-      </div>
-      <button type="button" onClick={() => onNavigate('Summary')}><FileText size={18} /> View full summary <ArrowRight size={18} /></button>
-      <section className="privacy-proof">
-        <h3><ShieldCheck size={17} /> Your data stays private</h3>
-        <p>{report.state === 'demo' ? 'This public preview uses fictional results.' : 'The report was generated and loaded on this computer.'}</p>
-      </section>
-      <section className="honesty-note"><Info size={19} /><div><strong>Traits are tendencies, not guarantees.</strong><p>Environment, age, habits and many unmeasured variants still matter.</p></div></section>
-    </aside>
   )
 }
 
 type DiscoverViewProps = TraitReportProps & { status: LocalStatus }
 
 export function DiscoverView({ report, status, loading, onRefresh, onNavigate }: DiscoverViewProps) {
-  const [category, setCategory] = useState<TraitCategory>('Appearance')
+  const [category, setCategory] = useState<'All' | TraitCategory>('All')
   const [mode, setMode] = useState<'results' | 'atlas'>('results')
   const [explore, setExplore] = useState(false)
-  const visibleTraits = useMemo(() => report.traits.filter((trait) => trait.category === category && (explore || trait.evidence !== 'Exploratory')), [category, explore, report.traits])
-  const eye = report.traits.find((trait) => trait.id === 'eye-colour')
-  const hair = report.traits.find((trait) => trait.id === 'hair-pigmentation')
-  const freckles = report.traits.find((trait) => trait.id === 'freckling')
+  const [query, setQuery] = useState('')
+  const visibleTraits = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    return report.traits.filter((trait) => {
+      if (category !== 'All' && trait.category !== category) return false
+      if (!explore && trait.evidence === 'Exploratory') return false
+      if (!normalized) return true
+      return [trait.title, trait.result, trait.summary, ...(trait.genes ?? []), ...(trait.chromosomes ?? [])].join(' ').toLowerCase().includes(normalized)
+    })
+  }, [category, explore, query, report.traits])
+  const directCount = report.traits.filter((trait) => resultStateFor(trait) === 'observed').length
+  const partialCount = report.traits.filter((trait) => resultStateFor(trait) === 'partial').length
+  const unresolvedCount = report.traits.filter((trait) => resultStateFor(trait) === 'unresolved').length
 
   return (
     <main className="workspace consumer-workspace">
-      <section className="consumer-intro"><div><span className="section-kicker">DISCOVER</span><h1>What your DNA can reveal</h1><p>Everyday traits, model limits, and deeper read-level analyses - in plain language.</p></div></section>
+      <section className="consumer-intro"><div><span className="section-kicker">DISCOVER</span><h1>Traits and associations</h1><p>Your calculated results first, then the wider science library. Missing calls stay visibly unresolved.</p></div><button type="button" onClick={() => onNavigate('Summary')}><FileText size={17} /> Full summary</button></section>
       <ReportSourceStrip report={report} readsPresent={status.reads.present} />
+      <section className="discover-metrics" aria-label="Trait result status">
+        <span><strong>{report.traits.length}</strong><small>curated traits</small></span>
+        <span className="observed"><strong>{directCount}</strong><small>directly observed</small></span>
+        <span className="partial"><strong>{partialCount}</strong><small>partial panels</small></span>
+        <span className="unresolved"><strong>{unresolvedCount}</strong><small>need complete calls</small></span>
+        <p><Info size={16} /><span>The GWAS Catalog contains over a million published top associations. This studio shows only results with a responsible interpretation path.</span></p>
+      </section>
       <div className="discovery-controls">
         <div className="studio-mode" role="tablist" aria-label="Discovery mode">
           <button className={mode === 'results' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'results'} onClick={() => setMode('results')}>My results</button>
-          <button className={mode === 'atlas' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'atlas'} onClick={() => setMode('atlas')}>Genome atlas</button>
+          <button className={mode === 'atlas' ? 'active' : ''} type="button" role="tab" aria-selected={mode === 'atlas'} onClick={() => setMode('atlas')}>Analysis library</button>
         </div>
         <div className="evidence-lens"><span><strong>{explore ? 'Explore associations' : 'Evidence first'}</strong><small>{explore ? 'Includes early and low-predictive signals' : 'Hides exploratory-only results'}</small></span><button className={explore ? 'toggle active' : 'toggle'} type="button" role="switch" aria-checked={explore} onClick={() => setExplore((current) => !current)} aria-label="Toggle exploratory associations"><i /></button><TermTip compact term="Evidence lens" definition="Evidence first shows stronger or moderate results. Explore also shows reproducible but weak, ancestry-sensitive, or individually low-predictive associations." /></div>
       </div>
       {report.state === 'missing' ? <MissingReport loading={loading} onRefresh={onRefresh} /> : (
-        mode === 'atlas' ? <GenomeAtlas readsPresent={status.reads.present} onExploreResults={() => setMode('results')} /> : <div className="consumer-grid">
-          <section className="trait-canvas">
+        mode === 'atlas' ? <GenomeAtlas readsPresent={status.reads.present} onExploreResults={() => setMode('results')} /> : <section className="trait-canvas result-browser">
+          <div className="result-toolbar">
             <div className="consumer-tabs" role="tablist" aria-label="Trait categories">
-              {categories.map((item) => <button key={item} className={category === item ? 'active' : ''} onClick={() => setCategory(item)} role="tab" aria-selected={category === item} type="button">{item}</button>)}
-              <span>{report.state === 'demo' ? 'Reference demo' : 'Private result'}</span>
+              {(['All', ...categories] as const).map((item) => <button key={item} className={category === item ? 'active' : ''} onClick={() => setCategory(item)} role="tab" aria-selected={category === item} type="button">{item}</button>)}
             </div>
-            {category === 'Appearance' && eye && hair && freckles ? (
-              <>
-                <div className="appearance-grid"><EyeFeature report={report} trait={eye} /><div className="appearance-secondary"><TraitSpotlight trait={hair} /><TraitSpotlight trait={freckles} /></div></div>
-                <EvidenceList traits={visibleTraits} />
-              </>
-            ) : visibleTraits.length ? <EvidenceList traits={visibleTraits} /> : <section className="exploration-gate"><Sparkles size={25} /><div><h3>This category is exploratory</h3><p>Turn on <strong>Explore associations</strong> to see these signals with their limitations attached.</p></div></section>}
-          </section>
-          <QuickRead report={report} onNavigate={onNavigate} />
-        </div>
+            <label className="trait-search"><span>Search results</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Trait, gene, chromosome" /></label>
+          </div>
+          {visibleTraits.length ? <EvidenceList traits={visibleTraits} /> : <section className="exploration-gate"><Sparkles size={25} /><div><h3>No matching results</h3><p>Change the category, search, or evidence lens.</p></div></section>}
+        </section>
       )}
     </main>
   )

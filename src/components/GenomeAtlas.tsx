@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Activity,
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   Moon,
   Pill,
   Ruler,
+  Search,
   ScanSearch,
   ShieldAlert,
   ShieldPlus,
@@ -65,11 +66,26 @@ function statusClass(status: AtlasItem['status']) {
 
 export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps) {
   const [expandedId, setExpandedId] = useState<string | null>('eye-atlas')
+  const [query, setQuery] = useState('')
+  const filteredGroups = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    if (!normalized) return genomeAtlas
+    return genomeAtlas.map((group) => ({
+      ...group,
+      items: group.items.filter((item) => [item.title, item.result, item.detail, item.status, ...(item.genes ?? []), ...(item.chromosomes ?? [])].join(' ').toLowerCase().includes(normalized)),
+    })).filter((group) => group.items.length)
+  }, [query])
+  const visibleCount = filteredGroups.reduce((total, group) => total + group.items.length, 0)
   return (
-    <div className="atlas-layout">
+    <>
+      <div className="atlas-toolbar">
+        <div><strong>Analysis library</strong><small>{visibleCount} research paths, not personal calls</small></div>
+        <label><Search size={15} /><span>Search analyses</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Trait, gene, chromosome" /></label>
+      </div>
+      <div className="atlas-layout">
       <section className="atlas-table" aria-label="Genome analysis atlas">
         <header className="atlas-columns"><span>Trait / analysis</span><span>Signal</span><span>Result / status</span><span>Scale</span></header>
-        {genomeAtlas.map((group) => (
+        {filteredGroups.map((group) => (
           <section className={`atlas-group atlas-${group.id}`} key={group.id}>
             <header><div><AtlasIcon id={`${group.id}-atlas`} /><strong>{group.title}</strong></div><p>{group.description}</p></header>
             {group.items.map((item) => {
@@ -86,13 +102,14 @@ export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps
                 <button className="atlas-row" type="button" onClick={() => setExpandedId(expanded ? null : item.id)} aria-expanded={expanded}>{content}</button>
                 {expanded && <div className="atlas-expanded">
                   <div><strong>What this means</strong><p>{item.detail}</p></div>
-                  <dl><div><dt>Current state</dt><dd>{item.status}</dd></div><div><dt>Evidence scale</dt><dd>{item.scale}</dd></div><div><dt>What you get</dt><dd>{item.result}</dd></div></dl>
+                  <dl><div><dt>Analysis readiness</dt><dd>{item.status}</dd></div><div><dt>Evidence scale</dt><dd>{item.scale}</dd></div><div><dt>Genes / region</dt><dd>{item.genes?.join(' · ') || 'Genome-wide or pipeline-dependent'}</dd></div><div><dt>Chromosomes</dt><dd className="atlas-chromosomes">{item.chromosomes?.length ? item.chromosomes.map((chromosome) => <a key={chromosome} href={chromosome === '1-22' ? 'https://www.ensembl.org/Homo_sapiens/Info/Index' : `https://www.ensembl.org/Homo_sapiens/Location/Chromosome?r=${encodeURIComponent(chromosome)}`} target="_blank" rel="noreferrer">{chromosome === '1-22' ? 'Genome-wide' : `Chr ${chromosome}`}</a>) : 'Varies'}</dd></div></dl>
                   {item.sourceUrl ? <a href={item.sourceUrl} target="_blank" rel="noreferrer">Open scientific source <ExternalLink size={14} /></a> : <span>No single responsible individual predictor is available.</span>}
                 </div>}
               </div>
             })}
           </section>
         ))}
+        {!visibleCount ? <div className="atlas-empty"><Search size={20} /><span><strong>No matching analyses</strong><small>Try another trait, gene, or chromosome.</small></span></div> : null}
       </section>
 
       <aside className="analysis-ladder">
@@ -108,6 +125,7 @@ export function GenomeAtlas({ readsPresent, onExploreResults }: GenomeAtlasProps
         </div>
         <button type="button" onClick={onExploreResults}><Activity size={17} /> Explore my results <ArrowRight size={17} /></button>
       </aside>
-    </div>
+      </div>
+    </>
   )
 }

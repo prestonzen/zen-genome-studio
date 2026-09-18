@@ -100,27 +100,27 @@ export const genomeRegions: GenomeRegion[] = [
 
 export const polygenicModels = [
   {
-    id: 'height-pgs', title: 'Height', status: 'Model available', scale: 'Thousands of variants', readiness: 55,
+    id: 'PGS003895', title: 'Height', status: 'Calculated locally', scale: '62,419 variants', readiness: 55,
     summary: 'A multi-ancestry height score is available locally, but a personal estimate still needs complete callable genotypes, ancestry normalization, and calibration.',
     next: 'Build a callable genotype dataset from the reads. The current variant-only VCF cannot distinguish a true reference call from a site that was not reported.',
     sourceUrl: 'https://www.pgscatalog.org/score/PGS003895/',
   },
   {
     id: 'skin-model', title: 'Skin pigmentation', status: 'Forensic model', scale: '36 markers', readiness: 68,
-    summary: 'HIrisPlex-S provides a validated categorical model. It is not a measure of identity, ethnicity, or attractiveness.',
-    next: 'Implement the complete coefficients and validate every required marker before showing a category.',
-    sourceUrl: 'https://www.sciencedirect.com/science/article/pii/S1872497318302205',
+    summary: 'A local coverage audit now tracks a 33-marker rsID subset of the validated HIrisPlex-S model. No shade category is guessed from an incomplete model.',
+    next: 'Call all 36 required genotypes from reads or a gVCF, then run the official coefficients locally before showing probabilities.',
+    sourceUrl: 'https://doi.org/10.1016/j.fsigen.2018.04.004',
   },
   {
-    id: 'chronotype-pgs', title: 'Sleep chronotype', status: 'Research score', scale: 'Highly polygenic', readiness: 30,
-    summary: 'Genetics contributes to morning-versus-evening preference, but schedule, light exposure, age, and sleep debt remain important.',
-    next: 'Choose a validated score with matching ancestry evaluation and a meaningful comparison population.',
-    sourceUrl: 'https://www.pgscatalog.org/trait/EFO_0004354/',
+    id: 'PGS002684', title: 'Sleep chronotype', status: 'Calculated locally', scale: '977,159 variants', readiness: 42,
+    summary: 'PGS002684 measures a morning-person tendency. Schedule, light exposure, age, and sleep debt remain important and a raw score is not a bedtime.',
+    next: 'Add a matching reference distribution before translating the weighted score into a percentile.',
+    sourceUrl: 'https://www.pgscatalog.org/score/PGS002684/',
   },
   {
-    id: 'body-pgs', title: 'Body composition', status: 'Research only', scale: 'Highly polygenic', readiness: 20,
-    summary: 'Scores for BMI or fat distribution are population-level tendencies and do not prescribe nutrition or training.',
-    next: 'Keep any future result separate from health advice and include environment and observed measurements.',
-    sourceUrl: 'https://www.pgscatalog.org/',
+    id: 'PGS000027', title: 'BMI tendency', status: 'Calculated locally', scale: '2,100,302 variants', readiness: 38,
+    summary: 'PGS000027 is a research score for BMI tendency, not body-fat percentage, appearance, or a diet prescription.',
+    next: 'Use ancestry-matched calibration and keep the result secondary to measured height, weight, waist, training, sleep, and health context.',
+    sourceUrl: 'https://www.pgscatalog.org/score/PGS000027/',
   },
 ]

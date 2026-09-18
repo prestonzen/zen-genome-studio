@@ -94,9 +94,9 @@ export function ReportOverview({
         </article>
 
         <article className={pgsReady ? 'report-snapshot ready polygenic' : 'report-snapshot polygenic'}>
-          <div className="snapshot-heading"><span><Gauge size={18} /></span><div><small>POLYGENIC</small><h3>Height score</h3></div><b>{pgsReady ? 'Ready' : 'Missing'}</b></div>
-          <div className="snapshot-result"><strong>{pgsReady ? privacyMode ? 'Personal calculation connected' : `${pgsResult.coveragePercent}% direct coverage` : 'No result connected'}</strong><p>{pgsReady ? privacyMode ? 'The score and coverage details are hidden by privacy mode.' : pgsResult.interpretation : pgsResult.sourceNote}</p></div>
-          <div className="snapshot-context"><TermTip compact term="Coverage before percentile" definition="The app shows how much of the published score was directly represented. It does not invent a percentile without a suitable ancestry-matched reference distribution." /><span>{pgsResult.modelId}</span></div>
+          <div className="snapshot-heading"><span><Gauge size={18} /></span><div><small>POLYGENIC</small><h3>Research scores</h3></div><b>{pgsReady ? 'Ready' : 'Missing'}</b></div>
+          <div className="snapshot-result"><strong>{pgsReady ? privacyMode ? 'Personal calculations connected' : `${pgsResult.scores?.length ?? 1} partial scores connected` : 'No result connected'}</strong><p>{pgsReady ? privacyMode ? 'The scores and coverage details are hidden by privacy mode.' : `Height coverage is ${pgsResult.coveragePercent}%. Every model shows its own raw score and observed coverage.` : pgsResult.sourceNote}</p></div>
+          <div className="snapshot-context"><TermTip compact term="Coverage before percentile" definition="The app shows how much of each published score was directly represented. It does not invent a percentile without a suitable ancestry-matched reference distribution." /><span>{pgsResult.scores?.map((score) => score.modelId).join(' · ') || pgsResult.modelId}</span></div>
           <button type="button" onClick={onOpenPolygenic}>Open score <ArrowRight size={15} /></button>
         </article>
       </div>
