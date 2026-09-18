@@ -23,6 +23,10 @@ type ChromosomeLandscapeProps = {
   selected: string
   onSelect: (chromosome: string) => void
   report: TraitReport
+  pgsResult: PgsResult
+  pgsLoading: boolean
+  pgsCalculating: boolean
+  onCalculatePgs: () => Promise<void>
 }
 
 const maxLength = chromosomes[0].length
@@ -32,12 +36,14 @@ function ChromosomeBody({ index }: { index: number }) {
 }
 
 function ChromosomeDetail({ chromosome, regionCount }: { chromosome: ChromosomeInfo; regionCount: number }) {
+  const ensemblUrl = `https://www.ensembl.org/Homo_sapiens/Location/Chromosome?r=${encodeURIComponent(chromosome.name)}`
   return (
     <article className="region-detail chromosome-overview" aria-live="polite">
       <header><div><span>CHROMOSOME OVERVIEW</span><h3>Chromosome {chromosome.name}</h3><p>{chromosome.title}</p></div><Ruler size={24} /></header>
       <p>{chromosome.summary}</p>
       <div className="chromosome-examples"><strong>Examples on this chromosome</strong>{chromosome.examples.map((example) => <span key={example}>{example}</span>)}</div>
       <div className="region-interpretation"><Dna size={18} /><p><strong>How to read this map</strong>A chromosome holds hundreds or thousands of genes and regulatory regions. The {regionCount} marked item{regionCount === 1 ? '' : 's'} here are curated examples, not everything this chromosome does.</p></div>
+      <a className="chromosome-source" href={ensemblUrl} target="_blank" rel="noreferrer">Browse chromosome {chromosome.name} in Ensembl <ArrowUpRight size={14} /></a>
     </article>
   )
 }
@@ -110,26 +116,17 @@ type PgsModelState = {
   error?: string
 }
 
-const missingPgsResult: PgsResult = {
-  state: 'missing', mode: 'local', modelId: heightPgsModel.id, trait: 'Standing height', modelVariants: heightPgsModel.variants,
-  matchedVariants: 0, coveragePercent: 0, weightCoveragePercent: 0,
-  interpretation: 'No personal calculation has been run.', nextStep: 'Calculate against the private VCF.', sourceNote: 'No result yet.',
-}
-
-function PolygenicView() {
+function PolygenicView({ result, loading, calculating, onCalculate }: { result: PgsResult; loading: boolean; calculating: boolean; onCalculate: () => Promise<void> }) {
   const [selectedId, setSelectedId] = useState(polygenicModels[0].id)
   const [pgsState, setPgsState] = useState<PgsModelState | null>(null)
-  const [result, setResult] = useState<PgsResult>(missingPgsResult)
   const [installing, setInstalling] = useState(false)
-  const [calculating, setCalculating] = useState(false)
   const selected = polygenicModels.find((model) => model.id === selectedId) ?? polygenicModels[0]
 
   useEffect(() => {
     const controller = new AbortController()
-    Promise.all([
-      fetch('/api/pgs-model', { signal: controller.signal }).then((response) => response.ok ? response.json() : Promise.reject(new Error('Model status failed'))),
-      fetch('/api/pgs-result', { signal: controller.signal }).then((response) => response.ok ? response.json() : Promise.reject(new Error('Result status failed'))),
-    ]).then(([modelState, scoreResult]: [PgsModelState, PgsResult]) => { setPgsState(modelState); setResult(scoreResult) }).catch((error) => {
+    fetch('/api/pgs-model', { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Model status failed')))
+      .then((modelState: PgsModelState) => setPgsState(modelState)).catch((error) => {
       if (error instanceof Error && error.name !== 'AbortError') setPgsState(null)
     })
     return () => controller.abort()
@@ -143,16 +140,6 @@ function PolygenicView() {
     } catch {
       setPgsState((current) => current ? { ...current, error: 'The model download could not be completed.' } : null)
     } finally { setInstalling(false) }
-  }
-
-  async function calculateHeightScore() {
-    setCalculating(true)
-    try {
-      const response = await fetch('/api/pgs-result', { method: 'POST', headers: { 'X-Zen-Local': '1' } })
-      setResult(await response.json() as PgsResult)
-    } catch {
-      setResult({ ...missingPgsResult, state: 'error', error: 'The private VCF could not be scored.' })
-    } finally { setCalculating(false) }
   }
 
   const hasResult = result.state === 'ready'
@@ -173,11 +160,11 @@ function PolygenicView() {
               <div className="pgs-metrics"><span><strong>{result.matchedVariants.toLocaleString()}</strong><small>of {result.modelVariants.toLocaleString()} model variants directly present</small></span><span><strong>{result.coveragePercent}%</strong><small>direct genotype coverage</small></span><span><strong>{result.weightCoveragePercent}%</strong><small>model weight represented</small></span><span><strong>{result.effectAlleles?.toLocaleString()}</strong><small>effect-allele copies counted</small></span></div>
               <div className="pgs-coverage"><span><i style={{ width: `${result.coveragePercent}%` }} /></span><small>Directly observed in the variant-only VCF</small></div>
               <p><strong>What this number means</strong>{result.interpretation}</p><p><strong>Why there is no percentile yet</strong>{result.nextStep}</p>
-              <button type="button" onClick={calculateHeightScore} disabled={calculating}>{calculating ? <LoaderCircle className="spin" size={14} /> : <Gauge size={14} />}{calculating ? 'Recalculating' : 'Recalculate from VCF'}</button>
+              <button type="button" onClick={onCalculate} disabled={calculating || result.mode === 'cloud'}>{calculating ? <LoaderCircle className="spin" size={14} /> : <Gauge size={14} />}{result.mode === 'cloud' ? 'Recalculate locally' : calculating ? 'Recalculating' : 'Recalculate from VCF'}</button>
             </section>
           ) : selected.id === 'height-pgs' ? (
             <section className={pgsState?.installed ? 'pgs-installer installed' : 'pgs-installer'}>
-              <header><div><Download size={17} /><span><strong>{pgsState?.installed ? `${heightPgsModel.id} is ready` : `Add ${heightPgsModel.id}`}</strong><small>{heightPgsModel.variants.toLocaleString()} public weights · {heightPgsModel.build}</small></span></div><button type="button" onClick={pgsState?.installed ? calculateHeightScore : installHeightModel} disabled={installing || calculating || pgsState?.mode === 'cloud'}>{installing || calculating ? <LoaderCircle className="spin" size={14} /> : pgsState?.installed ? <Gauge size={14} /> : <Download size={14} />}{installing ? 'Adding model' : calculating ? 'Calculating' : pgsState?.installed ? 'Calculate my score' : 'Add locally'}</button></header>
+              <header><div><Download size={17} /><span><strong>{pgsState?.installed ? `${heightPgsModel.id} is ready` : `Add ${heightPgsModel.id}`}</strong><small>{heightPgsModel.variants.toLocaleString()} public weights · {heightPgsModel.build}</small></span></div><button type="button" onClick={pgsState?.installed ? onCalculate : installHeightModel} disabled={installing || calculating || pgsState?.mode === 'cloud'}>{installing || calculating || loading ? <LoaderCircle className="spin" size={14} /> : pgsState?.installed ? <Gauge size={14} /> : <Download size={14} />}{installing ? 'Adding model' : calculating || loading ? 'Calculating' : pgsState?.installed ? 'Calculate my score' : 'Add locally'}</button></header>
               <p>{result.error || pgsState?.error || pgsState?.note || 'The public score definition is local. Calculation reads the private VCF without uploading it.'}</p>
             </section>
           ) : <div><Layers3 size={19} /><p><strong>What is still needed</strong>{selected.next}</p></div>}
@@ -194,7 +181,7 @@ export function ChromosomeLandscape(props: ChromosomeLandscapeProps) {
     <section className="landscape-panel interactive-landscape" data-testid="scene-genome-explorer">
       <div className="landscape-header"><div><h2>Genome explorer</h2><p>Choose a chromosome for plain-English context, then open a marked region for personal results.</p></div><span className="preview-label">INTERACTIVE</span></div>
       <div className="tab-list" role="tablist" aria-label="Genome explorer views">{tabs.map((tab) => <button key={tab} className={props.activeTab === tab ? 'active' : ''} onClick={() => props.onTabChange(tab)} role="tab" aria-selected={props.activeTab === tab} type="button">{tab}</button>)}</div>
-      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : <PolygenicView />}</div>
+      <div className="landscape-content">{props.activeTab === 'Genome map' ? <GenomeMap selected={props.selected} onSelect={props.onSelect} report={props.report} /> : <PolygenicView result={props.pgsResult} loading={props.pgsLoading} calculating={props.pgsCalculating} onCalculate={props.onCalculatePgs} />}</div>
     </section>
   )
 }

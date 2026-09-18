@@ -8,6 +8,7 @@ import {
   Ear,
   Eye,
   EyeOff,
+  ExternalLink,
   FileText,
   HeartPulse,
   Info,
@@ -76,6 +77,16 @@ const traitDefinitions: Partial<Record<string, string>> = {
   'photic-sneeze': 'The photic sneeze reflex is sneezing after moving into bright light. This marker only shifts the odds.',
 }
 
+const clinicalDefinitions = {
+  classification: 'The laboratory\'s evidence label for a variant-condition relationship. It is displayed as reported and may evolve as evidence changes.',
+  carrier: 'A carrier finding usually means one altered copy in a recessive-disease gene. It is not the same as having that recessive condition.',
+  incidental: 'A clinically relevant result found outside the original reason for testing. The report\'s own follow-up guidance remains the controlling interpretation.',
+  secondary: 'A finding intentionally sought in an actionable gene list during clinical sequencing, separate from the original testing indication.',
+}
+
+const CLINVAR_CLASSIFICATION_URL = 'https://www.ncbi.nlm.nih.gov/clinvar/docs/clinsig/'
+const ACMG_SECONDARY_URL = 'https://pubmed.ncbi.nlm.nih.gov/40568962/'
+
 function TraitTitle({ trait }: { trait: TraitResult }) {
   const definition = traitDefinitions[trait.id]
   return definition ? <TermTip compact term={trait.title} definition={definition} /> : <>{trait.title}</>
@@ -97,11 +108,12 @@ function formatRefreshTime(value?: string) {
 
 function ReportSourceStrip({ report, readsPresent }: { report: TraitReport; readsPresent?: boolean }) {
   const demo = report.state === 'demo'
+  const cloud = report.mode === 'cloud'
   return (
     <div className="report-source-strip">
       <div><FileText size={25} /><span><strong>{report.reportLabel}</strong><small>{report.sourceNote}</small><em>{demo ? 'Demo data' : formatRefreshTime(report.generatedAt)}</em></span></div>
       <div><Database size={25} /><span><strong>{readsPresent === undefined ? report.build : readsPresent ? 'Raw reads detected' : 'Reads not configured'}</strong><small>{readsPresent === undefined ? 'Human reference' : readsPresent ? 'Available for deeper local analysis' : 'VCF results still available'}</small></span></div>
-      <div><ShieldCheck size={25} /><span><strong>{demo ? 'Demo only' : 'Local only'}</strong><small>{demo ? 'No personal genome loaded' : 'Your data stays on this device'}</small></span></div>
+      <div><ShieldCheck size={25} /><span><strong>{demo ? 'Demo only' : cloud ? 'Protected sync' : 'Local report'}</strong><small>{demo ? 'No personal genome loaded' : cloud ? 'Derived summary only; raw DNA stays local' : 'Generated and stored on this device'}</small></span></div>
     </div>
   )
 }
@@ -261,6 +273,7 @@ export function DiscoverView({ report, status, loading, onRefresh, onNavigate }:
 }
 
 function ClinicalFindingRow({ finding }: { finding: ClinicalFinding }) {
+  const clinVarUrl = `https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(`${finding.gene} ${finding.variant}`)}`
   return (
     <details className="clinical-finding-row">
       <summary>
@@ -275,6 +288,7 @@ function ClinicalFindingRow({ finding }: { finding: ClinicalFinding }) {
           <div><dt>Zygosity</dt><dd>{finding.zygosity}</dd></div>
           <div><dt>Inheritance</dt><dd>{finding.inheritance}</dd></div>
         </dl>
+        <div className="clinical-definition-row"><TermTip compact term={finding.classification} definition={clinicalDefinitions.classification} /><a href={clinVarUrl} target="_blank" rel="noreferrer">Check current ClinVar records <ExternalLink size={13} /></a></div>
         <p><strong>What the report means</strong>{finding.plainMeaning}</p>
         <p><strong>Follow-up written in the report</strong>{finding.reportFollowUp}</p>
       </div>
@@ -299,14 +313,15 @@ function ClinicalReportPanel({ clinicalReport, clinicalLoading, onRefreshClinica
           <div className="clinical-source-line"><span><FileText size={16} /> {clinicalReport.reportLabel}</span><span>{clinicalReport.reportDate ? `Report date ${clinicalReport.reportDate}` : 'Local report'}</span><b>Not recalculated</b></div>
           <div className="clinical-status-grid">
             <article><small>Primary findings</small><strong>{clinicalReport.primaryFindings.status}</strong><p>{clinicalReport.primaryFindings.note}</p></article>
-            <article><small>ACMG secondary findings</small><strong>{clinicalReport.secondaryFindings.status}</strong><span>{clinicalReport.secondaryFindings.panel}</span><p>{clinicalReport.secondaryFindings.note}</p></article>
+            <article><small><TermTip compact term="ACMG secondary findings" definition={clinicalDefinitions.secondary} /></small><strong>{clinicalReport.secondaryFindings.status}</strong><span>{clinicalReport.secondaryFindings.panel}</span><p>{clinicalReport.secondaryFindings.note}</p></article>
           </div>
+          <div className="clinical-evidence-links"><span>Interpretation context</span><a href={CLINVAR_CLASSIFICATION_URL} target="_blank" rel="noreferrer">ClinVar classification terms <ExternalLink size={12} /></a><a href={ACMG_SECONDARY_URL} target="_blank" rel="noreferrer">ACMG SF v3.3 <ExternalLink size={12} /></a></div>
           <section className="clinical-group">
-            <div><span><strong>Incidental findings</strong><small>Clinically relevant findings unrelated to the original reason for testing.</small></span><b>{clinicalReport.incidentalFindings.length}</b></div>
+            <div><span><strong><TermTip compact term="Incidental findings" definition={clinicalDefinitions.incidental} /></strong><small>Clinically relevant findings unrelated to the original reason for testing.</small></span><b>{clinicalReport.incidentalFindings.length}</b></div>
             {clinicalReport.incidentalFindings.map((finding) => <ClinicalFindingRow finding={finding} key={finding.id} />)}
           </section>
           <section className="clinical-group">
-            <div><span><strong>Carrier findings</strong><small>One altered copy in a recessive-disease gene; a carrier result is not the same as having that recessive condition.</small></span><b>{clinicalReport.carrierFindings.length}</b></div>
+            <div><span><strong><TermTip compact term="Carrier findings" definition={clinicalDefinitions.carrier} /></strong><small>One altered copy in a recessive-disease gene; a carrier result is not the same as having that recessive condition.</small></span><b>{clinicalReport.carrierFindings.length}</b></div>
             {clinicalReport.carrierFindings.map((finding) => <ClinicalFindingRow finding={finding} key={finding.id} />)}
           </section>
           <details className="clinical-limitations"><summary>Report limitations <ArrowRight size={15} /></summary><ul>{clinicalReport.limitations.map((item) => <li key={item}>{item}</li>)}</ul></details>

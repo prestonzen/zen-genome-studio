@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Database, Dna, ExternalLink, Eye, EyeOff, GitCompare, Globe2, RefreshCw, ShieldCheck, UserRound, Waypoints } from 'lucide-react'
 import type { AncestryProfile, AncestryRegion, AncestryReport } from '../types'
+import { TermTip } from './TermTip'
+
+const NHGRI_ANCESTRY_URL = 'https://www.genome.gov/about-genomics/policy-issues/population-descriptors-in-genomics'
 
 type AncestryViewProps = {
   report: AncestryReport
@@ -66,12 +69,13 @@ export function AncestryView({ report, loading, privacyMode, onRefresh, onToggle
 
       <section className="ancestry-definition">
         <Dna size={22} />
-        <div><strong>Genetic ancestry is not the same as ethnicity.</strong><p>DNA can estimate similarity to sampled reference populations. It cannot measure culture, nationality, identity, or every genealogical ancestor.</p></div>
+        <div><strong><TermTip compact term="Genetic ancestry is not the same as ethnicity" definition="Genetic ancestry estimates inherited similarity to sampled reference populations. Ethnicity describes shared culture, language, customs, heritage, or history and is not a biological measurement." /></strong><p>DNA can estimate similarity to sampled reference populations. It cannot measure culture, nationality, identity, or every genealogical ancestor.</p></div>
       </section>
 
       <div className="ancestry-layout">
         <section className="ancestry-main">
           <header className="ancestry-section-heading"><div><span>IMPORTED ESTIMATE</span><h2>Regional comparison</h2><p>{report.sourceNote}</p></div><b>{report.sourceName}</b></header>
+          {ready && <div className="ancestry-source-context"><ShieldCheck size={16} /><p><strong>Displayed exactly as imported</strong><span>Zen Genome Studio does not recalculate these vendor percentages or blend the family profile into your result.</span></p><a href={NHGRI_ANCESTRY_URL} target="_blank" rel="noreferrer">How ancestry estimates work <ExternalLink size={13} /></a></div>}
           {!ready ? (
             <div className="ancestry-empty"><ShieldCheck size={25} /><div><strong>{report.mode === 'cloud' ? 'Private by design' : 'No imported estimate connected'}</strong><p>{report.sourceNote}</p></div>{report.mode === 'local' && <button type="button" onClick={onRefresh}><RefreshCw size={15} className={loading ? 'spin' : ''} /> Check again</button>}</div>
           ) : privacyMode ? (

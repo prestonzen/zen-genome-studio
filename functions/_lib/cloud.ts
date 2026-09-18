@@ -61,7 +61,7 @@ export async function cloudReportResponse(
   try {
     const payload: unknown = JSON.parse(await object.text())
     if (!isRecord(payload)) throw new Error('Report root must be an object')
-    return Response.json({ ...payload, mode: 'cloud' }, { headers: privateJsonHeaders })
+    return Response.json({ ...payload, state: 'ready', mode: 'cloud' }, { headers: privateJsonHeaders })
   } catch {
     return Response.json({ error: 'The protected report could not be read.' }, { status: 502, headers: privateJsonHeaders })
   }

@@ -166,7 +166,7 @@ The private **Ancestry** workspace keeps two methods visibly separate:
 
 | Layer | What it shows | Source |
 | --- | --- | --- |
-| **Imported estimate** | Regional percentages and a family comparison exactly as supplied by a consumer ancestry service | Private `ancestry-report.json`; never recalculated or deployed |
+| **Imported estimate** | Regional percentages and a family comparison exactly as supplied by a consumer ancestry service | Private `ancestry-report.json`; never recalculated, optionally copied to password-gated R2 as a compact summary |
 | **Open-reference analysis** | Reproducible genetic similarity, PCA placement, and coarse mixture estimates | [1000 Genomes 30x GRCh38](https://www.internationalgenome.org/data-portal/data-collections/1000genomes_30x/) with [PLINK 2](https://www.cog-genomics.org/plink/2.0/strat) |
 
 The open panel is scientifically useful for broad structure and sampled cohorts, but it cannot reproduce proprietary fine-region labels. The interface says **genetic ancestry**, not ethnicity: DNA does not measure culture, nationality, or identity.
@@ -280,11 +280,11 @@ OpenCRAVAT modules and source databases can change over time. Always inspect the
 
 - Raw VCF, BCF, BAM, CRAM, FASTQ, and Genozip files are blocked by `.gitignore`.
 - OpenCRAVAT SQLite databases, jobs, exports, logs, and local settings are blocked too.
-- The browser receives only a generic source label, presence state, and file size.
-- The local trait endpoint exposes only the compact derived report, never the source path or full genotype list.
-- The clinical endpoint reads a compact summary from private app data; report PDFs and findings are never bundled into the site.
-- The ancestry endpoint reads only a compact private display summary; raw DNA and imported regional profiles are absent from the public build.
-- Cloudflare mode has no upload route and always reports that no private genome is present.
+- The browser receives compact interpreted summaries, never source paths or full genotype lists.
+- The local trait endpoint exposes only the derived report; the VCF remains outside the repository and browser bundle.
+- The clinical endpoint reads a compact summary from private app data. The signed PDF stays off the site; an explicit publish step can copy only the summary to password-gated R2.
+- The ancestry endpoint reads only the imported display summary. Raw AncestryDNA genotype files are never published.
+- Cloudflare mode has no upload route. It can read the same four compact summaries as localhost after authentication, while still reporting that no raw genome is present.
 - GitHub Actions rejects genomic or analysis-data files if one is accidentally staged.
 - Public bug reports require a privacy confirmation before submission.
 
@@ -293,6 +293,8 @@ Read the full [security and privacy policy](SECURITY.md) before contributing or 
 ## ☁️ Cloudflare preview
 
 Cloudflare Pages can host a password-gated copy of the visual interface and read compact derived summaries from a private R2 bucket. It does **not** receive raw genome files or run OpenCRAVAT; annotation and scoring stay on the private computer.
+
+The protected deployment uses the same trait, clinical, ancestry, and PGS JSON objects as localhost. Cloudflare adds only the expected `mode: "cloud"` label; result values and source notes remain identical.
 
 ```powershell
 npx wrangler login

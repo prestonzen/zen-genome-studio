@@ -5,6 +5,7 @@ import { ChromosomeLandscape } from './components/ChromosomeLandscape'
 import { DataProvenanceBanner } from './components/DataProvenanceBanner'
 import { GenomeSummary } from './components/GenomeSummary'
 import { PrivacyView } from './components/PrivacyView'
+import { ReportOverview } from './components/ReportOverview'
 import { Sidebar } from './components/Sidebar'
 import { Topbar } from './components/Topbar'
 import { DiscoverView, SummaryView } from './components/TraitReport'
@@ -12,6 +13,7 @@ import { useLocalStatus } from './hooks/useLocalStatus'
 import { useClinicalReport } from './hooks/useClinicalReport'
 import { useAncestryReport } from './hooks/useAncestryReport'
 import { useTraitReport } from './hooks/useTraitReport'
+import { usePgsResult } from './hooks/usePgsResult'
 import type { LandscapeTab, ViewName } from './types'
 
 function formatSource(bytes?: number, cloudMode = false, reportReady = false) {
@@ -25,6 +27,7 @@ function App() {
   const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
   const { clinicalReport, clinicalLoading, refreshClinicalReport } = useClinicalReport()
   const { ancestryReport, ancestryLoading, refreshAncestryReport } = useAncestryReport()
+  const { pgsResult, pgsLoading, pgsCalculating, calculatePgsResult } = usePgsResult()
   const [view, setView] = useState<ViewName>('Overview')
   const [tab, setTab] = useState<LandscapeTab>('Genome map')
   const [selectedChromosome, setSelectedChromosome] = useState('11')
@@ -55,6 +58,12 @@ function App() {
       return
     }
     window.open(status.openCravatUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  function openPolygenic() {
+    setView('Overview')
+    setTab('Polygenic')
+    window.setTimeout(() => document.querySelector('[data-testid="scene-genome-explorer"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0)
   }
 
   return (
@@ -108,12 +117,27 @@ function App() {
         <div className="dashboard-grid overview-grid">
           <div className="main-column">
             <GenomeSummary status={status} report={report} onOpenPrivacy={() => changeView('Privacy')} />
+            <ReportOverview
+              status={status}
+              traitReport={report}
+              clinicalReport={clinicalReport}
+              ancestryReport={ancestryReport}
+              pgsResult={pgsResult}
+              privacyMode={privacyMode}
+              onTogglePrivacy={() => setPrivacyMode((current) => !current)}
+              onNavigate={changeView}
+              onOpenPolygenic={openPolygenic}
+            />
             <ChromosomeLandscape
               activeTab={tab}
               onTabChange={setTab}
               selected={selectedChromosome}
               onSelect={setSelectedChromosome}
               report={report}
+              pgsResult={pgsResult}
+              pgsLoading={pgsLoading}
+              pgsCalculating={pgsCalculating}
+              onCalculatePgs={calculatePgsResult}
             />
           </div>
         </div>
