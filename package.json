@@ -14,7 +14,8 @@
     "preview:cloudflare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-cloudflare-preview.ps1",
     "preview:cloudflare:reports": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-cloudflare-preview.ps1 -PublishReports",
     "publish:cloud-reports": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publish-cloud-reports.ps1 -Remote",
-    "deploy:cloudflare": "npm run build && wrangler pages deploy"
+    "deploy:cloudflare": "npm run build && wrangler pages deploy dist --project-name zen-genome-studio --branch main",
+    "check:cloudflare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-cloudflare-deployment.ps1"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

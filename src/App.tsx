@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FileText, ShieldCheck } from 'lucide-react'
 import { AncestryView } from './components/AncestryView'
 import { ChromosomeLandscape } from './components/ChromosomeLandscape'
+import { DataProvenanceBanner } from './components/DataProvenanceBanner'
 import { GenomeSummary } from './components/GenomeSummary'
 import { PrivacyView } from './components/PrivacyView'
 import { Sidebar } from './components/Sidebar'
@@ -20,7 +21,7 @@ function formatSource(bytes?: number, cloudMode = false, reportReady = false) {
 }
 
 function App() {
-  const { status, checking, refresh } = useLocalStatus()
+  const { status, checking, apiAvailable, refresh } = useLocalStatus()
   const { report, loading: reportLoading, refresh: refreshReport } = useTraitReport()
   const { clinicalReport, clinicalLoading, refreshClinicalReport } = useClinicalReport()
   const { ancestryReport, ancestryLoading, refreshAncestryReport } = useAncestryReport()
@@ -60,6 +61,7 @@ function App() {
     <div className={privacyMode ? 'app-shell safe' : 'app-shell'}>
       <Sidebar active={view} onChange={changeView} />
       <Topbar connected={status.opencravat} sourceReady={reportReady} mode={status.mode} authEnabled={status.auth?.enabled} onOpenAnalysis={openAnalysis} />
+      {cloudMode && <DataProvenanceBanner status={status} checking={checking} apiAvailable={apiAvailable} onOpenStatus={() => changeView('Privacy')} />}
 
       {view === 'Discover' ? (
         <DiscoverView report={report} status={status} loading={reportLoading} onRefresh={refreshReport} onNavigate={changeView} />

@@ -13,6 +13,7 @@ const emptyStatus: LocalStatus = {
 export function useLocalStatus() {
   const [status, setStatus] = useState<LocalStatus>(emptyStatus)
   const [checking, setChecking] = useState(true)
+  const [apiAvailable, setApiAvailable] = useState(false)
 
   const refresh = useCallback(async () => {
     setChecking(true)
@@ -20,8 +21,10 @@ export function useLocalStatus() {
       const response = await fetch('/api/local-status')
       if (!response.ok) throw new Error('Status request failed')
       setStatus((await response.json()) as LocalStatus)
+      setApiAvailable(true)
     } catch {
       setStatus(emptyStatus)
+      setApiAvailable(false)
     } finally {
       setChecking(false)
     }
@@ -36,5 +39,5 @@ export function useLocalStatus() {
     }
   }, [refresh])
 
-  return { status, checking, refresh }
+  return { status, checking, apiAvailable, refresh }
 }

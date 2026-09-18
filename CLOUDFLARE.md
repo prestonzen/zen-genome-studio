@@ -74,7 +74,10 @@ Each object is capped at 2 MB. Publishing results does not deploy code and does 
 
 ```powershell
 npm run deploy:cloudflare
+npm run check:cloudflare
 ```
+
+Use the Wrangler command above or Git integration. Do not deploy this project with the dashboard's drag-and-drop uploader: Cloudflare does not compile the root `functions/` directory for drag-and-drop deployments, so the password wall and report APIs would be missing even though the Vite interface appears online.
 
 For GitHub auto-deploys, use:
 
@@ -125,3 +128,4 @@ Wrangler normally serves the Pages build at `http://127.0.0.1:8788/`. Never reus
 - [R2 Wrangler commands](https://developers.cloudflare.com/r2/reference/wrangler-commands/)
 - [Pages custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/)
 - [WAF rate limiting rules](https://developers.cloudflare.com/waf/rate-limiting-rules/)
+- [Direct Upload and Pages Functions](https://developers.cloudflare.com/pages/get-started/direct-upload/#functions)
